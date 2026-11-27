@@ -125,7 +125,59 @@ local TURLER = {
         -- Kıyafet scriptinin tam menüsünü açar: kıyafet değiştir, kombin kaydet / giy
         onSelect = function() TriggerEvent('illenium-appearance:client:openClothingShopMenu') end,
     },
+    sef = {
+        model = `s_m_m_ciasec_01`, senaryo = 'WORLD_HUMAN_CLIPBOARD',
+        grup = { police = 4 },   -- sadece rütbe 4 (Chief) ve üstü görür
+        label = 'Departman yönetimi', icon = 'fa-solid fa-user-tie',
+        -- qbx_management'ın şef menüsü: işe alım, rütbe, kovma, departman kasası
+        onSelect = function() exports.qbx_management:OpenBossMenu('job') end,
+    },
     sus = { model = MODEL, senaryo = 'WORLD_HUMAN_COP_IDLES' },   -- sadece görüntü
+
+    -- ---- Hastane ----
+    doktor = {
+        model = `s_m_m_doctor_01`, senaryo = 'WORLD_HUMAN_CLIPBOARD',
+        label = 'Muayene ol', icon = 'fa-solid fa-stethoscope',
+        -- qbx_ambulancejob'un check-in'i: NPC'ye en yakın hastaneyi kullanır (Pillbox veya Paleto)
+        onSelect = function(data)
+            local k = GetEntityCoords(data.entity)
+            local hastane = #(k - vector3(308.19, -595.35, 43.29)) < #(k - vector3(-254.54, 6331.78, 32.43)) and 'pillbox' or 'paleto'
+            TriggerEvent('qbx_ambulancejob:client:checkIn', hastane)
+        end,
+    },
+    eczane = {
+        model = `s_f_y_scrubs_01`, senaryo = 'WORLD_HUMAN_STAND_IMPATIENT',
+        label = 'Eczane', icon = 'fa-solid fa-pills',
+        onSelect = function() exports.ox_inventory:openInventory('shop', { type = 'Eczane' }) end,
+    },
+    ems_mesai = {
+        model = `s_m_m_paramedic_01`, senaryo = 'WORLD_HUMAN_CLIPBOARD', grup = 'ambulance',
+        label = 'Göreve başla / bitir (EMS)', icon = 'fa-solid fa-clipboard-user',
+        onSelect = function() TriggerServerEvent('QBCore:ToggleDuty') end,
+    },
+    ems_depo = {
+        model = `s_m_m_paramedic_01`, senaryo = 'WORLD_HUMAN_STAND_IMPATIENT', grup = 'ambulance',
+        label = 'Malzeme deposu (EMS)', icon = 'fa-solid fa-kit-medical',
+        onSelect = function() exports.ox_inventory:openInventory('shop', { type = 'AmbulanceArmory', id = 1 }) end,
+    },
+    ems_dolap = {
+        model = `s_m_m_paramedic_01`, senaryo = 'WORLD_HUMAN_STAND_IMPATIENT', grup = 'ambulance',
+        label = 'Kişisel dolap (EMS)', icon = 'fa-solid fa-box-archive',
+        onSelect = function() exports.ox_inventory:openInventory('stash', 'ambulanceStash') end,
+    },
+
+    -- ---- Mekanik ----
+    mekanik_mesai = {
+        model = `s_m_y_xmech_01`, senaryo = 'WORLD_HUMAN_CLIPBOARD', grup = 'mechanic',
+        label = 'Göreve başla / bitir (Mekanik)', icon = 'fa-solid fa-clipboard-user',
+        onSelect = function() TriggerServerEvent('QBCore:ToggleDuty') end,
+    },
+    mekanik_depo = {
+        model = `s_m_y_xmech_02`, senaryo = 'WORLD_HUMAN_STAND_IMPATIENT', grup = 'mechanic',
+        label = 'Mekanik deposu', icon = 'fa-solid fa-toolbox',
+        -- qbx_mechanicjob'un kendi depo olayı (görevde olmak gerekir)
+        onSelect = function() TriggerEvent('qb-mechanicjob:client:target:OpenStash') end,
+    },
 
     -- ---- Mağazalar (herkes kullanabilir) ----
     -- illenium-appearance'ın kendi olaylarını tetikliyoruz

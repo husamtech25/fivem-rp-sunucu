@@ -21,20 +21,28 @@ end)
 -- lib.addCommand: ox_lib'in komut sistemi. restricted = sadece bu gruptakiler kullanabilir.
 -- NPC türleri: her biri Sol Alt ile bakınca farklı bir şey açar (client.lua'da tanımlı)
 local TURLER = {
-    mesai = true, cephanelik = true, dolap = true, giyim = true, sus = true,   -- polis
+    mesai = true, cephanelik = true, dolap = true, giyim = true, sef = true, sus = true,   -- polis
     kiyafet = true, berber = true, dovme = true, estetik = true,        -- mağazalar
+    doktor = true, eczane = true, ems_mesai = true, ems_depo = true, ems_dolap = true,   -- hastane
+    mekanik_mesai = true, mekanik_depo = true,                          -- mekanik
 }
+
+-- Tür listesini otomatik yazı haline getir (yardım ve hata mesajı için)
+local turListesi = {}
+for ad in pairs(TURLER) do turListesi[#turListesi + 1] = ad end
+table.sort(turListesi)
+local TUR_YAZI = table.concat(turListesi, ', ')
 
 lib.addCommand('npckoy', {
     help = 'Bulunduğun yere memur NPC koyar (sonra kenara çekil)',
     params = {
-        { name = 'tur', type = 'string', help = 'mesai | cephanelik | dolap | giyim | sus | kiyafet | berber | dovme | estetik' },
+        { name = 'tur', type = 'string', help = TUR_YAZI },
     },
     restricted = 'group.admin',
 }, function(source, args)
     local tur = args.tur and args.tur:lower()
     if not TURLER[tur] then
-        exports.qbx_core:Notify(source, 'Tür yanlış. Türler: mesai, cephanelik, dolap, giyim, sus, kiyafet, berber, dovme, estetik', 'error')
+        exports.qbx_core:Notify(source, 'Tür yanlış. Türler: ' .. TUR_YAZI, 'error')
         return
     end
 

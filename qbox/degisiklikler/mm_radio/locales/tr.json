@@ -1,0 +1,34 @@
+{
+    "join_notify_description": "%.2f MHz frekansına bağlandın",
+    "invalid_notify_description": "%.2f MHz frekansı kullanılamıyor",
+    "already_notify_description": "Zaten %.2f MHz frekansındasın",
+    "restricted_notify_description": "%.2f MHz frekansına girme yetkin yok",
+    "volume_notify_description": "Ses seviyesi %%%d yapıldı",
+    "unsuccess_name": "İsim değiştirilemedi",
+    "jammer_notify_description": "%.2f MHz frekansına bağlanılamadı",
+    "toggle_defean": "Telsiz sesi kapatıldı",
+    "toggle_undeafen": "Telsiz sesi açıldı",
+    "failed_mute": "Oyuncu susturulamadı",
+
+    "ui": {
+        "header": "TELSİZDE",
+        "frequency": "Frekans",
+        "disconnect": "BAĞLANTIYI KES",
+        "notconnected": "BAĞLI DEĞİL",
+        "settings": "Ayarlar",
+        "channels": "Kanallar",
+        "radio": "Telsiz",
+        "members": "Üyeler",
+        "favorites": "Favoriler",
+        "recommended": "Önerilenler",
+        "clear": "TEMİZLE",
+        "hide_overlay": "GÖSTERGEYİ GİZLE",
+        "show_overlay": "GÖSTERGEYİ GÖSTER",
+        "save": "KAYDET",
+        "radio_settings": "Telsiz ayarları",
+        "move_radio": "Telsizi taşı",
+        "allow_move": "Taşımaya izin ver",
+        "overlay_settings": "Gösterge ayarları",
+        "enableClicks": "Telsiz sesi"
+    }
+}

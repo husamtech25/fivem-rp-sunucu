@@ -44,7 +44,7 @@ setr qbx:enableGroupManagement "false" # When true, allows bosses to manage job/
 setr qbx:motd "<p style='padding: 1rem; background-color: #141517; border: 1px solid #373a40; border-radius: 0.5rem; text-align: center;'><span style='color: rgb(200, 200, 40);'>Welcome to Qbox!</span><br>Learn more at <span id='link' style='color: rgb(100, 100, 255);' onclick='window.invokeNative(\"openUrl\", \"https://docs.qbox.re/\")'>docs.qbox.re</span></p><style>span#link:hover { cursor: pointer; }</style>"
 
 # illenium-appearance locale config
-setr illenium-appearance:locale "en"
+setr illenium-appearance:locale "tr"
 
 # Renewed-Weathersync config
 setr weather_disablecd true
@@ -60,8 +60,20 @@ set NPWD_AUDIO_TOKEN ""
 
 # loadscreen config
 setr loadscreen:externalShutdown true
-set loadscreen:primaryColor "#f1e542"
-set loadscreen:shadowColor "#1a18077f"
+# [Huso] Endcore RP temasÄ±: koyu zemin, kÃ¶z turuncusu
+set loadscreen:style "modern"
+set loadscreen:primaryColor "#E84828"
+set loadscreen:secondaryColor "#3A2A26"
+set loadscreen:shadowColor "rgba(20, 8, 4, 0.6)"
+set loadscreen:textColor "#FAF6F0"
+set loadscreen:fontFamily "'Bahnschrift', 'Segoe UI', Arial, sans-serif"
+set loadscreen:backgroundBrightness 35
+set loadscreen:imageShuffle true
+set loadscreen:serverMessage "${playerName}, Endcore RP'ye hoÅŸ geldin!"
+set loadscreen:finishingMessage "Åehir hazÄ±rlanÄ±yor..."
+set loadscreen:finishedMessage "HazÄ±r!"
+set loadscreen:finishedLine "Birazdan ÅŸehre iniyorsun..."
+set loadscreen:initialAudioVolume 15
 
 # These resources will start by default
 ensure mapmanager
