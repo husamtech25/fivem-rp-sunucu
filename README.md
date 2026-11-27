@@ -3,8 +3,6 @@
 Qbox tabanlı, Türkçe bir GTA V roleplay sunucusunun kendi yazdığımız scriptleri ve yaptığımız değişiklikler.
 Hazır Qbox scriptlerinin tamamı burada değil; onlar kendi GitHub depolarında duruyor (aşağıda listesi var).
 
-**Karakter Arenası (hayran sitesi):** https://claude.ai/artifact/SBQVeF4ZwYsKfoLwTuGqrX
-
 ## Klasörler
 
 | Klasör | İçerik |
@@ -13,7 +11,6 @@ Hazır Qbox scriptlerinin tamamı burada değil; onlar kendi GitHub depolarında
 | `qbox/degisiklikler` | Hazır Qbox scriptlerinde değiştirdiğimiz dosyalar (açıklamalar aşağıda) |
 | `qbox/cfg` | `ox.cfg`, `permissions.cfg` ve lisans anahtarı silinmiş `server.cfg.ornek` |
 | `ilk-sunucu` | Framework'süz ilk sunucuda Lua öğrenirken yazdığımız scriptler |
-| `karakter-arenasi` | Hayran sitesinin sayfası (veriler claude.ai veritabanında, burada sadece sayfa) |
 
 ## Qbox'ta yaptığımız değişiklikler
 
