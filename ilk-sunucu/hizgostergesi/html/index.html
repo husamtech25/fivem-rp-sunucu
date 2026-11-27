@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<style>
+    /* Bu sefer CSS ve JS'i tek dosyada tuttuk; küçük arayüzlerde böylesi pratik. */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: transparent; font-family: 'Segoe UI', Arial, sans-serif; }
+
+    #gosterge {
+        position: absolute;
+        right: 40px; bottom: 40px;
+        width: 190px;
+        padding: 14px 18px;
+        background: rgba(12, 14, 20, 0.75);
+        border-radius: 14px;
+        color: #fff;
+        transition: opacity 0.3s;
+    }
+    #gosterge.gizli { opacity: 0; }
+
+    .ust { display: flex; justify-content: space-between; align-items: flex-end; }
+    #hiz { font-size: 52px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+    .birim { font-size: 13px; color: #9aa3b5; margin-left: 4px; }
+    #vites {
+        font-size: 26px; font-weight: 700; color: #4f8cff;
+        width: 38px; text-align: center;
+        border: 2px solid #4f8cff; border-radius: 8px;
+    }
+
+    /* Devir çubuğu: dolu kısmın genişliği devire göre değişir */
+    .cubuk { margin-top: 10px; height: 6px; background: #2a2f3d; border-radius: 3px; overflow: hidden; }
+    #devir { height: 100%; width: 0%; background: #4f8cff; transition: width 0.1s linear; }
+    #devir.kirmizi { background: #ff4f4f; }
+
+    #uyari { margin-top: 8px; font-size: 12px; color: #ff8a3d; display: none; }
+</style>
+</head>
+<body>
+    <div id="gosterge" class="gizli">
+        <div class="ust">
+            <div><span id="hiz">0</span><span class="birim">km/s</span></div>
+            <div id="vites">N</div>
+        </div>
+        <div class="cubuk"><div id="devir"></div></div>
+        <div id="uyari">⚠ Motor hasarlı — /tamir</div>
+    </div>
+
+<script>
+    const gosterge = document.getElementById('gosterge');
+    const hiz = document.getElementById('hiz');
+    const vites = document.getElementById('vites');
+    const devir = document.getElementById('devir');
+    const uyari = document.getElementById('uyari');
+
+    // client.lua'dan gelen mesajları dinle
+    window.addEventListener('message', (e) => {
+        const veri = e.data;
+
+        if (veri.islem === 'goster') gosterge.classList.remove('gizli');
+        if (veri.islem === 'gizle') gosterge.classList.add('gizli');
+
+        if (veri.islem === 'guncelle') {
+            hiz.textContent = veri.hiz;
+
+            // Vites: 0 ise geri (R), araç duruyorsa boş (N)
+            if (veri.vites === 0) vites.textContent = 'R';
+            else if (veri.hiz < 1) vites.textContent = 'N';
+            else vites.textContent = veri.vites;
+
+            // Devir yüzdesi; %90'ı geçince çubuk kırmızı olsun (vites değiştir uyarısı)
+            const yuzde = Math.round(veri.devir * 100);
+            devir.style.width = yuzde + '%';
+            devir.classList.toggle('kirmizi', yuzde > 90);
+
+            uyari.style.display = veri.motorHasari ? 'block' : 'none';
+        }
+    });
+</script>
+</body>
+</html>

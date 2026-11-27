@@ -1,0 +1,7 @@
+# Gizli bilgi içerebilecek dosyalar
+server.cfg
+*.key
+.env
+# Oyuncu verileri
+konumlar.json
+indeksler.json

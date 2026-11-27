@@ -1,0 +1,801 @@
+<title>Karakter Arenası</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Konsept: şehrin dosya dolabı. Her karakter bir dosya kartı, durumu kartın köşesinde bir mühür. */
+:root {
+  --bg: #E7EAEE;
+  --surface: #F7F8FA;
+  --surface-2: #DDE2E8;
+  --ink: #141821;
+  --muted: #59626F;
+  --line: #C6CDD6;
+  --accent: #D9480F;      /* siren turuncusu */
+  --accent-ink: #FFFFFF;
+  --blue: #1F4FD1;        /* telsiz mavisi */
+  --ok: #1F8A4C;
+  --bad: #C92A2A;
+  --warn: #B7791F;
+  --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0F1218; --surface: #171B23; --surface-2: #222833; --ink: #E8EBF0; --muted: #98A1AF; --line: #2E3542;
+  --accent: #FF6B2C; --accent-ink: #120A05; --blue: #7397FF; --ok: #4CC47E; --bad: #FF6B6B; --warn: #E6B450;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #0F1218; --surface: #171B23; --surface-2: #222833; --ink: #E8EBF0; --muted: #98A1AF; --line: #2E3542;
+  --accent: #FF6B2C; --accent-ink: #120A05; --blue: #7397FF; --ok: #4CC47E; --bad: #FF6B6B; --warn: #E6B450;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+}
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: .01em; text-wrap: balance; margin: 0; line-height: 1.05; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+a { color: var(--blue); }
+
+/* ---------- Başlık ---------- */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+header.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.topbar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding-block: 12px; }
+.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; min-width: 0; }
+.brand h1 { font-size: 30px; font-weight: 900; text-transform: uppercase; }
+.brand .tag { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+nav.tabs a {
+  text-decoration: none; color: var(--muted); font-weight: 600; font-size: 14px;
+  padding: 7px 12px; border-radius: 999px;
+}
+nav.tabs a[aria-current="page"] { background: var(--ink); color: var(--bg); }
+nav.tabs a:hover:not([aria-current="page"]) { color: var(--ink); background: var(--surface-2); }
+
+/* ---------- Açılış ---------- */
+.hero { padding-block: 36px 20px; display: grid; gap: 10px; }
+.hero h2 { font-size: clamp(40px, 7vw, 72px); font-weight: 900; text-transform: uppercase; }
+.hero h2 span { color: var(--accent); }
+.hero p { color: var(--muted); max-width: 62ch; margin: 0; }
+.stats { display: flex; gap: 22px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.stats b { font-family: var(--font-display); font-size: 26px; color: var(--ink); letter-spacing: 0; display: block; line-height: 1; }
+
+main { padding-block: 8px 48px; }
+.view { display: grid; gap: 20px; }
+.section-title { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.section-title h2 { font-size: 28px; text-transform: uppercase; }
+.section-title p { margin: 0; color: var(--muted); font-size: 14px; }
+
+/* ---------- Oyun kartları ---------- */
+.games { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.game-card {
+  text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 18px; display: grid; gap: 8px; align-content: start; min-width: 0;
+  transition: transform .15s ease, border-color .15s ease;
+}
+.game-card:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--accent); }
+.game-card:disabled { opacity: .55; cursor: not-allowed; }
+.game-card .code { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: .08em; }
+.game-card h3 { font-size: 26px; text-transform: uppercase; }
+.game-card p { margin: 0; color: var(--muted); font-size: 14px; }
+.game-card .need { font-size: 12px; color: var(--warn); font-weight: 600; }
+.game-card .best { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+
+/* ---------- Oyun ekranı ---------- */
+.play { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px; display: grid; gap: 18px; }
+.play-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.play-head h2 { font-size: 30px; text-transform: uppercase; margin-right: auto; }
+.meter { display: flex; gap: 14px; font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.meter b { color: var(--ink); }
+.progress { height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+.prompt-label { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.prompt { font-family: var(--font-display); font-size: clamp(30px, 6vw, 52px); font-weight: 900; line-height: 1.05; text-wrap: balance; overflow-wrap: anywhere; }
+.prompt.small { font-family: var(--font-body); font-size: 19px; font-weight: 600; line-height: 1.4; }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.choice {
+  text-align: left; padding: 14px 16px; border-radius: var(--r); border: 1px solid var(--line); background: var(--bg);
+  font-weight: 600; min-width: 0; overflow-wrap: anywhere;
+}
+.choice:hover:not(:disabled) { border-color: var(--ink); }
+.choice.right { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 16%, var(--bg)); }
+.choice.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, var(--bg)); }
+.choice:disabled { cursor: default; }
+.feedback { min-height: 22px; font-weight: 600; }
+.feedback.ok { color: var(--ok); } .feedback.no { color: var(--bad); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.btn { border: 1px solid var(--ink); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-weight: 700; font-size: 14px; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.accent { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.danger { background: transparent; color: var(--bad); border-color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.result { display: grid; gap: 12px; justify-items: start; }
+.result .big { font-family: var(--font-display); font-size: 80px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.result .big small { font-size: 32px; color: var(--muted); }
+
+/* ---------- Dosya kartları (karakterler) ---------- */
+.filters { display: flex; gap: 10px; flex-wrap: wrap; }
+.filters input, .filters select, .form input, .form select, .form textarea {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; min-width: 0;
+}
+.filters input { flex: 1 1 220px; }
+.files { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.file {
+  position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 4px 14px 4px 4px;
+  padding: 16px 16px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; overflow: hidden;
+}
+.file::before { content: ""; position: absolute; left: 0; top: 0; width: 64px; height: 6px; background: var(--surface-2); border-radius: 0 0 6px 0; }
+.file .no { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.file h3 { font-size: 26px; text-transform: uppercase; overflow-wrap: anywhere; padding-right: 76px; }
+.file .nick { font-style: italic; color: var(--accent); font-weight: 600; }
+.file .meta { font-size: 13px; color: var(--muted); }
+.file .traits { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.chip { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink); }
+.chip.sample { background: color-mix(in srgb, var(--warn) 20%, var(--surface)); color: var(--warn); }
+.stamp {
+  position: absolute; top: 14px; right: 10px; transform: rotate(8deg);
+  font-family: var(--font-display); font-weight: 900; font-size: 15px; letter-spacing: .08em; text-transform: uppercase;
+  padding: 2px 7px; border: 2px solid currentColor; border-radius: 4px;
+}
+.stamp.aktif { color: var(--ok); } .stamp.ck { color: var(--bad); } .stamp.kayip { color: var(--warn); }
+
+/* ---------- Skorlar ---------- */
+.board { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.board-wrap { overflow-x: auto; }
+.board th, .board td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.board th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 500; }
+.board td.num { font-variant-numeric: tabular-nums; text-align: right; }
+.board th.num { text-align: right; }
+.board tr.me td { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.who { display: flex; align-items: center; gap: 8px; }
+.who img { width: 24px; height: 24px; border-radius: 50%; }
+.rank { font-family: var(--font-display); font-size: 20px; font-weight: 900; }
+
+/* ---------- Yönetim ---------- */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.panel h3 { font-size: 22px; text-transform: uppercase; }
+.form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 14px; }
+.form label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--muted); min-width: 0; }
+.form .full { grid-column: 1 / -1; }
+.form textarea { min-height: 70px; resize: vertical; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px; }
+.checks label { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: 13px; }
+.list { display: grid; gap: 6px; }
+.list-item { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.list-item .t { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.list-item .t small { color: var(--muted); }
+.admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 16px; align-items: start; }
+
+.note { padding: 12px 14px; border-radius: 8px; background: var(--surface); border: 1px dashed var(--line); color: var(--muted); font-size: 14px; }
+.note.warn { border-color: var(--warn); color: var(--ink); }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-weight: 600; font-size: 14px; z-index: 20; max-width: calc(100% - 32px); }
+footer { border-top: 1px solid var(--line); padding-block: 18px 28px; color: var(--muted); font-size: 13px; }
+.empty { padding: 28px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (max-width: 520px) { .brand h1 { font-size: 24px; } .result .big { font-size: 60px; } }
+</style>
+
+<header class="top">
+  <div class="wrap topbar">
+    <div class="brand"><h1 id="site-title">Karakter Arenası</h1><span class="tag">hayran yapımı</span></div>
+    <nav class="tabs" aria-label="Bölümler">
+      <a href="#oyunlar" data-view="oyunlar">Oyunlar</a>
+      <a href="#karakterler" data-view="karakterler">Karakterler</a>
+      <a href="#skorlar" data-view="skorlar">Skorlar</a>
+      <a href="#yonetim" data-view="yonetim" id="tab-admin" hidden>Yönetim</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero" id="hero">
+    <h2 id="hero-title">Şehri ne kadar <span>tanıyorsun?</span></h2>
+    <p id="hero-sub">Lakaplardan karakteri bul, kimin hâlâ hayatta olduğunu tahmin et, bilgi yarışmasında skor tablosuna gir. Bütün karakterler ve sorular hayranlar tarafından girilir.</p>
+    <div class="stats" aria-live="polite">
+      <div><b id="st-char">0</b>karakter</div>
+      <div><b id="st-q">0</b>soru</div>
+      <div><b id="st-org">0</b>oluşum</div>
+      <div><b id="st-players">0</b>oyuncu</div>
+    </div>
+  </section>
+
+  <main>
+    <div id="status" class="note" hidden></div>
+
+    <!-- OYUNLAR -->
+    <section class="view" id="view-oyunlar">
+      <div id="game-menu" class="view">
+        <div class="section-title"><h2>Oyunlar</h2><p>Her oyun 10 tur. En iyi skorun tabloya yazılır.</p></div>
+        <div class="games" id="games"></div>
+      </div>
+      <div id="game-play" hidden></div>
+    </section>
+
+    <!-- KARAKTERLER -->
+    <section class="view" id="view-karakterler" hidden>
+      <div class="section-title"><h2>Dosyalar</h2><p>Bütün karakterler, durumlarına göre mühürlü.</p></div>
+      <div class="filters">
+        <input id="f-q" type="search" placeholder="İsim, lakap veya oluşum ara" aria-label="Karakter ara">
+        <select id="f-durum" aria-label="Duruma göre filtrele">
+          <option value="">Tüm durumlar</option>
+          <option value="aktif">Hayatta</option>
+          <option value="ck">CK / Vefat</option>
+          <option value="kayip">Kayıp / Firari</option>
+        </select>
+        <select id="f-org" aria-label="Oluşuma göre filtrele"><option value="">Tüm oluşumlar</option></select>
+      </div>
+      <div class="files" id="files"></div>
+    </section>
+
+    <!-- SKORLAR -->
+    <section class="view" id="view-skorlar" hidden>
+      <div class="section-title"><h2>Skor tablosu</h2><p>Her oyundaki en iyi skorların toplamı.</p></div>
+      <div class="board-wrap"><table class="board" id="board"></table></div>
+    </section>
+
+    <!-- YÖNETİM -->
+    <section class="view" id="view-yonetim" hidden>
+      <div class="section-title"><h2>Yönetim</h2><p>Sadece sen ve editörler görürsün. Girdiğin her şey herkese anında yansır.</p></div>
+      <div class="admin-grid">
+        <div class="panel">
+          <h3 id="char-form-title">Karakter ekle</h3>
+          <form class="form" id="char-form" autocomplete="off">
+            <label>Ad<input id="c-ad" required maxlength="60"></label>
+            <label>Lakap<input id="c-lakap" maxlength="40" placeholder="Örn. Kasap"></label>
+            <label>Durum
+              <select id="c-durum">
+                <option value="aktif">Hayatta</option>
+                <option value="ck">CK / Vefat</option>
+                <option value="kayip">Kayıp / Firari</option>
+              </select>
+            </label>
+            <label>Oluşum<input id="c-olusum" maxlength="60" list="org-list" placeholder="Yoksa boş bırak"></label>
+            <label>Meslek<input id="c-meslek" maxlength="60"></label>
+            <label>Fandom linki<input id="c-link" type="url" placeholder="https://..."></label>
+            <label class="full">İpucu (Kim Bu? oyununda gösterilir, kendi cümlelerinle yaz)<textarea id="c-ipucu" maxlength="300"></textarea></label>
+            <div class="full"><div class="prompt-label" style="margin-bottom:6px">Özellikler (Hangi karakter sensin testi için)</div><div class="checks" id="c-traits"></div></div>
+            <div class="full row">
+              <button class="btn accent" type="submit" id="c-save">Kaydet</button>
+              <button class="btn ghost" type="button" id="c-cancel" hidden>Düzenlemeyi bırak</button>
+            </div>
+          </form>
+          <datalist id="org-list"></datalist>
+          <div class="list" id="char-list"></div>
+        </div>
+
+        <div class="panel">
+          <h3 id="q-form-title">Bilgi yarışması sorusu ekle</h3>
+          <form class="form" id="q-form" autocomplete="off">
+            <label class="full">Soru<textarea id="q-soru" required maxlength="240"></textarea></label>
+            <label>A şıkkı<input id="q-a" required maxlength="80"></label>
+            <label>B şıkkı<input id="q-b" required maxlength="80"></label>
+            <label>C şıkkı<input id="q-c" maxlength="80"></label>
+            <label>D şıkkı<input id="q-d" maxlength="80"></label>
+            <label>Doğru cevap
+              <select id="q-dogru"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
+            </label>
+            <label class="full">Cevaptan sonra gösterilecek açıklama<input id="q-aciklama" maxlength="200"></label>
+            <div class="full row">
+              <button class="btn accent" type="submit" id="q-save">Kaydet</button>
+              <button class="btn ghost" type="button" id="q-cancel" hidden>Düzenlemeyi bırak</button>
+            </div>
+          </form>
+          <div class="list" id="q-list"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Toplu ekle</h3>
+          <p class="prompt-label" style="text-transform:none;letter-spacing:0;font-size:13px">Birçok karakteri tek seferde eklemek için JSON listesi yapıştır. Alanlar: ad, lakap, durum (aktif / ck / kayip), olusum, meslek, ipucu, link, ozellikler.</p>
+          <textarea id="bulk" style="min-height:120px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font-family:var(--font-mono);font-size:12px" aria-label="Toplu ekleme JSON"></textarea>
+          <div class="row"><button class="btn" id="bulk-go" type="button">Ekle</button><span id="bulk-msg" class="meta"></span></div>
+        </div>
+
+        <div class="panel">
+          <h3>Site ayarları</h3>
+          <form class="form" id="s-form" autocomplete="off">
+            <label class="full">Site adı<input id="s-title" maxlength="40"></label>
+            <label class="full">Açılış yazısı<textarea id="s-sub" maxlength="240"></textarea></label>
+            <div class="full row"><button class="btn accent" type="submit">Kaydet</button></div>
+          </form>
+          <div class="row"><button class="btn danger" type="button" id="del-samples">Örnek verileri sil</button><span id="del-samples-msg" class="meta"></span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap">Hayran yapımı bir sitedir; herhangi bir sunucu veya kurumla resmi bağlantısı yoktur. Karakterler ve hikâyeleri onları canlandıran oyunculara aittir. Bilgiler hayranlar tarafından kendi cümleleriyle girilir.</div>
+</footer>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------------- Sabitler ----------------
+  const TRAITS = ["Sert", "Zeki", "Komik", "Sadık", "Tehlikeli", "Gizemli", "Lider", "Yardımsever"];
+  const DURUM = { aktif: "Hayatta", ck: "CK / Vefat", kayip: "Kayıp / Firari" };
+  const ROUNDS = 10;
+
+  const GAMES = [
+    { id: "lakap", code: "OYUN 01", name: "Lakap Avı", desc: "Lakabı gösteriyoruz, sahibini sen bul.", need: (s) => s.withNick.length >= 4 ? null : "En az 4 lakaplı karakter gerekiyor." },
+    { id: "kim", code: "OYUN 02", name: "Kim Bu?", desc: "İpucunu oku, hangi karakterden bahsedildiğini tahmin et.", need: (s) => s.withClue.length >= 4 ? null : "En az 4 ipuçlu karakter gerekiyor." },
+    { id: "durum", code: "OYUN 03", name: "Hayatta mı, CK mı?", desc: "Karakter hâlâ şehirde mi, yoksa dosyası kapandı mı?", need: (s) => s.chars.length >= 3 ? null : "En az 3 karakter gerekiyor." },
+    { id: "olusum", code: "OYUN 04", name: "Kimin Adamı?", desc: "Karakterin hangi oluşuma bağlı olduğunu bil.", need: (s) => (s.withOrg.length >= 3 && s.orgs.length >= 2) ? null : "En az 2 farklı oluşumda 3 karakter gerekiyor." },
+    { id: "bilgi", code: "OYUN 05", name: "Bilgi Yarışması", desc: "Hayranların hazırladığı sorularla şehir kültürünü sına.", need: (s) => s.questions.length >= 1 ? null : "Henüz soru eklenmedi." },
+    { id: "test", code: "TEST", name: "Hangi Karakter Sensin?", desc: "6 soru, tek sonuç. Skor tutulmaz, sadece eğlence.", need: (s) => s.withTraits.length >= 2 ? null : "Özellik seçilmiş en az 2 karakter gerekiyor." },
+  ];
+
+  const TEST_QUESTIONS = [
+    { q: "Şehirde bir sorun çıktı. İlk ne yaparsın?", a: [["Masaya yumruğumu vururum", "Sert"], ["Sakin kalır, plan yaparım", "Zeki"], ["Ortamı yumuşatacak bir espri patlatırım", "Komik"], ["Ekibimi toplayıp görev dağıtırım", "Lider"]] },
+    { q: "Arkadaşının başı dertte.", a: [["Ne olursa olsun yanındayım", "Sadık"], ["Önce kimin haklı olduğunu öğrenirim", "Zeki"], ["Sorunu kimse görmeden hallederim", "Tehlikeli"], ["Karşılık beklemeden yardım ederim", "Yardımsever"]] },
+    { q: "Seni en iyi anlatan gece hangisi?", a: [["Kimse nerede olduğumu bilmez", "Gizemli"], ["Masa başında kahkahalar", "Komik"], ["Ekibin başında bir operasyon", "Lider"], ["Birinin hayatını kurtardığım bir gece", "Yardımsever"]] },
+    { q: "Biri sana ihanet etti.", a: [["Unutmam, zamanı gelince öderim", "Tehlikeli"], ["Yüzüne söylerim", "Sert"], ["Sessizce uzaklaşırım", "Gizemli"], ["Neden yaptığını anlamaya çalışırım", "Zeki"]] },
+    { q: "Yanından hiç ayırmadığın eşya?", a: [["Telsiz", "Lider"], ["Not defteri", "Zeki"], ["İlk yardım çantası", "Yardımsever"], ["Kimse bilmiyor", "Gizemli"]] },
+    { q: "İnsanlar seni nasıl tanır?", a: [["Sözünün eri", "Sadık"], ["Korkulan biri", "Tehlikeli"], ["Neşe kaynağı", "Komik"], ["Sert ama adil", "Sert"]] },
+  ];
+
+  // ---------------- Durum ----------------
+  const state = {
+    chars: [], questions: [], scores: [], site: {},
+    me: null, canEdit: false, db: null, user: null,
+    editingChar: null, editingQ: null,
+  };
+
+  // ---------------- Yardımcılar ----------------
+  const $ = (id) => document.getElementById(id);
+  function el(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    if (attrs) for (const [k, v] of Object.entries(attrs)) {
+      if (v == null || v === false) continue;
+      if (k === "class") n.className = v;
+      else if (k === "text") n.textContent = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? "" : v);
+    }
+    for (const k of kids.flat()) if (k != null) n.append(k.nodeType ? k : document.createTextNode(String(k)));
+    return n;
+  }
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const pick = (a, n) => shuffle(a).slice(0, n);
+  const safeLink = (u) => typeof u === "string" && u.startsWith("https://") ? u : null;
+  const str = (v, max = 300) => typeof v === "string" ? v.trim().slice(0, max) : "";
+  let toastTimer;
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.hidden = true), 2600); }
+  function status(msg, warn) { const s = $("status"); s.textContent = msg || ""; s.hidden = !msg; s.classList.toggle("warn", !!warn); }
+
+  function normChar(d) {
+    const x = d.data() || {};
+    return {
+      id: d.id, ad: str(x.ad, 60) || "İsimsiz", lakap: str(x.lakap, 40),
+      durum: DURUM[x.durum] ? x.durum : "aktif", olusum: str(x.olusum, 60), meslek: str(x.meslek, 60),
+      ipucu: str(x.ipucu, 300), link: safeLink(x.link),
+      ozellikler: Array.isArray(x.ozellikler) ? x.ozellikler.filter((t) => TRAITS.includes(t)) : [],
+      ornek: !!x.ornek,
+    };
+  }
+  function normQ(d) {
+    const x = d.data() || {};
+    const sec = (Array.isArray(x.secenekler) ? x.secenekler : []).map((s) => str(s, 80)).filter(Boolean).slice(0, 4);
+    const dogru = Number.isInteger(x.dogru) && x.dogru >= 0 && x.dogru < sec.length ? x.dogru : 0;
+    return { id: d.id, soru: str(x.soru, 240), secenekler: sec, dogru, aciklama: str(x.aciklama, 200), ornek: !!x.ornek };
+  }
+
+  function derived() {
+    const chars = state.chars;
+    const orgs = [...new Set(chars.map((c) => c.olusum).filter(Boolean))].sort((a, b) => a.localeCompare(b, "tr"));
+    return {
+      chars, orgs,
+      withNick: chars.filter((c) => c.lakap),
+      withClue: chars.filter((c) => c.ipucu),
+      withOrg: chars.filter((c) => c.olusum),
+      withTraits: chars.filter((c) => c.ozellikler.length),
+      questions: state.questions.filter((q) => q.soru && q.secenekler.length >= 2),
+    };
+  }
+
+  // ---------------- Görünümler ----------------
+  const VIEWS = ["oyunlar", "karakterler", "skorlar", "yonetim"];
+  function route() {
+    let v = (location.hash || "").slice(1);
+    if (!VIEWS.includes(v) || (v === "yonetim" && !state.canEdit)) v = "oyunlar";
+    for (const name of VIEWS) $("view-" + name).hidden = name !== v;
+    document.querySelectorAll("nav.tabs a").forEach((a) => { if (a.dataset.view !== v) a.removeAttribute("aria-current"); else a.setAttribute("aria-current", "page"); });
+    $("hero").hidden = v !== "oyunlar";
+  }
+  window.addEventListener("hashchange", route);
+
+  function renderAll() {
+    const s = derived();
+    $("st-char").textContent = s.chars.length;
+    $("st-q").textContent = s.questions.length;
+    $("st-org").textContent = s.orgs.length;
+    $("st-players").textContent = state.scores.length;
+    const title = str(state.site.baslik, 40) || "Karakter Arenası";
+    $("site-title").textContent = title;
+    document.title = title;
+    if (str(state.site.altBaslik, 240)) $("hero-sub").textContent = str(state.site.altBaslik, 240);
+    renderGames(s); renderFiles(s); renderBoard(); renderAdmin(s);
+  }
+
+  // ---- Oyun menüsü
+  function myBest(id) { const m = state.scores.find((x) => x.id === state.me); return m ? (m[id] || 0) : 0; }
+  function renderGames(s) {
+    const box = $("games"); box.replaceChildren();
+    for (const g of GAMES) {
+      const need = g.need(s);
+      const best = g.id === "test" ? null : myBest(g.id);
+      box.append(el("button", { class: "game-card", type: "button", disabled: !!need, onclick: () => startGame(g.id) },
+        el("span", { class: "code", text: g.code }),
+        el("h3", { text: g.name }),
+        el("p", { text: g.desc }),
+        need ? el("span", { class: "need", text: need }) : (best != null ? el("span", { class: "best", text: "En iyin: " + best + " / " + ROUNDS }) : null),
+      ));
+    }
+  }
+
+  // ---- Dosyalar
+  function renderFiles(s) {
+    const sel = $("f-org"), cur = sel.value;
+    sel.replaceChildren(el("option", { value: "", text: "Tüm oluşumlar" }), ...s.orgs.map((o) => el("option", { value: o, text: o })));
+    sel.value = s.orgs.includes(cur) ? cur : "";
+    const q = $("f-q").value.trim().toLocaleLowerCase("tr"), d = $("f-durum").value, o = sel.value;
+    const list = s.chars.filter((c) =>
+      (!d || c.durum === d) && (!o || c.olusum === o) &&
+      (!q || [c.ad, c.lakap, c.olusum, c.meslek].join(" ").toLocaleLowerCase("tr").includes(q)));
+    const box = $("files"); box.replaceChildren();
+    if (!s.chars.length) { box.append(el("div", { class: "empty", text: state.canEdit ? "Henüz karakter yok. Yönetim sekmesinden ilk dosyayı aç." : "Henüz karakter eklenmedi." })); return; }
+    if (!list.length) { box.append(el("div", { class: "empty", text: "Aramana uyan dosya yok." })); return; }
+    list.forEach((c, i) => {
+      const link = c.link ? el("a", { href: c.link, target: "_blank", rel: "noopener", text: "Dosyanın devamı ↗" }) : null;
+      box.append(el("article", { class: "file" },
+        el("span", { class: "stamp " + c.durum, text: c.durum === "aktif" ? "Hayatta" : c.durum === "ck" ? "CK" : "Kayıp" }),
+        el("span", { class: "no", text: "DOSYA " + String(i + 1).padStart(3, "0") }),
+        el("h3", { text: c.ad }),
+        c.lakap ? el("span", { class: "nick", text: "“" + c.lakap + "”" }) : null,
+        el("span", { class: "meta", text: [c.meslek, c.olusum].filter(Boolean).join(" · ") || "Bağımsız" }),
+        el("div", { class: "traits" }, c.ornek ? el("span", { class: "chip sample", text: "Örnek" }) : null, c.ozellikler.map((t) => el("span", { class: "chip", text: t }))),
+        link,
+      ));
+    });
+  }
+  ["f-q", "f-durum", "f-org"].forEach((id) => $(id).addEventListener("input", () => renderFiles(derived())));
+
+  // ---- Skor tablosu
+  async function renderBoard() {
+    const t = $("board");
+    const rows = state.scores.slice().sort((a, b) => (b.toplam || 0) - (a.toplam || 0)).slice(0, 50);
+    const cols = GAMES.filter((g) => g.id !== "test");
+    if (!rows.length) {
+      t.replaceChildren(el("tbody", null, el("tr", null, el("td", { class: "empty", text: "Henüz skor yok. İlk oyunu sen oyna." }))));
+      return;
+    }
+    let ps = {};
+    try { if (state.user) ps = await state.user.profiles(rows.map((r) => r.id)); } catch { ps = {}; }
+    t.replaceChildren(
+      el("thead", null, el("tr", null, el("th", { text: "#" }), el("th", { text: "Oyuncu" }), cols.map((g) => el("th", { class: "num", text: g.name })), el("th", { class: "num", text: "Toplam" }))),
+      el("tbody", null, rows.map((r, i) => {
+        const p = ps[r.id] || {};
+        return el("tr", { class: r.id === state.me ? "me" : null },
+          el("td", null, el("span", { class: "rank", text: i + 1 })),
+          el("td", null, el("span", { class: "who" }, p.avatarUrl ? el("img", { src: p.avatarUrl, alt: "" }) : null, el("span", { text: (p.name || "Bir oyuncu") + (r.id === state.me ? " (sen)" : "") }))),
+          cols.map((g) => el("td", { class: "num", text: r[g.id] || 0 })),
+          el("td", { class: "num" }, el("b", { text: r.toplam || 0 })));
+      })));
+  }
+
+  // ---------------- Oyun motoru ----------------
+  let game = null;
+  function buildRounds(id, s) {
+    if (id === "lakap") return pick(s.withNick, ROUNDS).map((c) => ({
+      label: "Bu lakap kimin?", prompt: "“" + c.lakap + "”", big: true,
+      options: shuffle([c.ad, ...pick(s.chars.filter((x) => x.id !== c.id && x.ad !== c.ad).map((x) => x.ad), 3)]), answer: c.ad, extra: c,
+    }));
+    if (id === "kim") return pick(s.withClue, ROUNDS).map((c) => ({
+      label: "İpucu", prompt: c.ipucu, big: false,
+      options: shuffle([c.ad, ...pick(s.chars.filter((x) => x.id !== c.id && x.ad !== c.ad).map((x) => x.ad), 3)]), answer: c.ad, extra: c,
+    }));
+    if (id === "durum") return pick(s.chars, ROUNDS).map((c) => ({
+      label: "Bu karakterin son durumu?", prompt: c.ad + (c.lakap ? " “" + c.lakap + "”" : ""), big: true,
+      options: [DURUM.aktif, DURUM.ck, DURUM.kayip], answer: DURUM[c.durum], extra: c,
+    }));
+    if (id === "olusum") return pick(s.withOrg, ROUNDS).map((c) => ({
+      label: "Hangi oluşuma bağlı?", prompt: c.ad + (c.lakap ? " “" + c.lakap + "”" : ""), big: true,
+      options: shuffle([c.olusum, ...pick(s.orgs.filter((o) => o !== c.olusum), 3)]), answer: c.olusum, extra: c,
+    }));
+    if (id === "bilgi") return pick(s.questions, ROUNDS).map((q) => {
+      const opts = q.secenekler.map((t, i) => ({ t, i }));
+      return { label: "Soru", prompt: q.soru, big: false, options: shuffle(opts).map((o) => o.t), answer: q.secenekler[q.dogru], note: q.aciklama };
+    });
+    return [];
+  }
+
+  function startGame(id) {
+    const s = derived();
+    if (id === "test") return startTest(s);
+    const rounds = buildRounds(id, s);
+    if (!rounds.length) return;
+    game = { id, name: GAMES.find((g) => g.id === id).name, rounds, i: 0, score: 0, streak: 0 };
+    $("game-menu").hidden = true; $("game-play").hidden = false;
+    renderRound();
+    $("game-play").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function quitGame() { game = null; $("game-play").hidden = true; $("game-play").replaceChildren(); $("game-menu").hidden = false; }
+
+  function playShell(title, meterKids) {
+    return el("div", { class: "play" },
+      el("div", { class: "play-head" }, el("h2", { text: title }), el("div", { class: "meter" }, meterKids), el("button", { class: "btn ghost", type: "button", onclick: quitGame, text: "Oyundan çık" })));
+  }
+
+  function renderRound() {
+    const r = game.rounds[game.i];
+    const total = game.rounds.length;
+    const shell = playShell(game.name, [
+      el("span", null, "Tur ", el("b", { text: game.i + 1 }), " / " + total),
+      el("span", null, "Skor ", el("b", { text: game.score })),
+      el("span", null, "Seri ", el("b", { text: game.streak })),
+    ]);
+    const bar = el("div", { class: "progress" }, el("i", { style: "width:" + (game.i / total * 100) + "%" }));
+    const fb = el("div", { class: "feedback", "aria-live": "polite" });
+    const next = el("button", { class: "btn accent", type: "button", hidden: true, text: game.i + 1 < total ? "Sonraki tur" : "Sonucu gör", onclick: () => { game.i++; game.i < total ? renderRound() : finishGame(); } });
+    const choices = el("div", { class: "choices" }, r.options.map((opt) =>
+      el("button", { class: "choice", type: "button", text: opt, onclick: (e) => {
+        const ok = opt === r.answer;
+        choices.querySelectorAll(".choice").forEach((b) => { b.disabled = true; if (b.textContent === r.answer) b.classList.add("right"); });
+        if (!ok) e.currentTarget.classList.add("wrong");
+        if (ok) { game.score++; game.streak++; } else game.streak = 0;
+        fb.className = "feedback " + (ok ? "ok" : "no");
+        fb.textContent = (ok ? (game.streak >= 3 ? "Doğru! " + game.streak + " seri." : "Doğru!") : "Yanlış. Doğrusu: " + r.answer) + (r.note ? " " + r.note : "");
+        next.hidden = false; next.focus();
+      } })));
+    shell.append(bar, el("div", null, el("div", { class: "prompt-label", text: r.label }), el("div", { class: "prompt" + (r.big ? "" : " small"), text: r.prompt })), choices, el("div", { class: "row" }, fb), el("div", { class: "row" }, next));
+    $("game-play").replaceChildren(shell);
+  }
+
+  async function finishGame() {
+    const { id, score, rounds, name } = game;
+    const total = rounds.length;
+    const prev = myBest(id);
+    const msg = el("p", { class: "meta" });
+    const shell = playShell(name, []);
+    shell.append(el("div", { class: "result" },
+      el("div", { class: "prompt-label", text: "Sonuç" }),
+      el("div", { class: "big" }, String(score), el("small", { text: " / " + total })),
+      el("p", { text: score === total ? "Kusursuz. Şehrin hafızası sende." : score >= total * 0.7 ? "Çok iyi, dosyalara hâkimsin." : score >= total * 0.4 ? "Fena değil, biraz daha arşiv taraması lazım." : "Şehre yeni gelmiş gibisin." }),
+      msg,
+      el("div", { class: "row" }, el("button", { class: "btn accent", type: "button", text: "Tekrar oyna", onclick: () => startGame(id) }), el("button", { class: "btn ghost", type: "button", text: "Oyunlara dön", onclick: quitGame }))));
+    $("game-play").replaceChildren(shell);
+    if (score <= prev) { msg.textContent = "En iyi skorun: " + prev + ". Tabloyu geçmek için daha fazlası lazım."; return; }
+    if (!state.db || !state.me) { msg.textContent = "Skoru tabloya yazmak için giriş yapmış olman gerekiyor."; return; }
+    try {
+      const mine = state.scores.find((x) => x.id === state.me) || {};
+      const body = {};
+      for (const g of GAMES) if (g.id !== "test") body[g.id] = g.id === id ? score : (Number(mine[g.id]) || 0);
+      body.toplam = Object.values(body).reduce((a, b) => a + b, 0);
+      await state.db.doc("skorlar/" + state.me).set(body);
+      msg.textContent = "Yeni rekor! Skor tablosuna yazıldı.";
+    } catch (e) {
+      msg.textContent = e && e.code === "invalid_argument" ? "Bu sayfada skor kaydetme iznin yok. Sadece oynayabilirsin." : "Skor kaydedilemedi, sonra tekrar dene.";
+    }
+  }
+
+  // ---- Kişilik testi
+  function startTest(s) {
+    const tally = {};
+    let i = 0;
+    $("game-menu").hidden = true; $("game-play").hidden = false;
+    const step = () => {
+      const shell = playShell("Hangi Karakter Sensin?", [el("span", null, "Soru ", el("b", { text: Math.min(i + 1, TEST_QUESTIONS.length) }), " / " + TEST_QUESTIONS.length)]);
+      if (i >= TEST_QUESTIONS.length) {
+        let best = [], bestScore = -1;
+        for (const c of s.withTraits) {
+          const sc = c.ozellikler.reduce((a, t) => a + (tally[t] || 0), 0) / Math.sqrt(c.ozellikler.length);
+          if (sc > bestScore + 1e-9) { best = [c]; bestScore = sc; } else if (Math.abs(sc - bestScore) < 1e-9) best.push(c);
+        }
+        const c = best[Math.floor(Math.random() * best.length)];
+        const top = Object.entries(tally).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t]) => t);
+        shell.append(el("div", { class: "result" },
+          el("div", { class: "prompt-label", text: "Sen…" }),
+          el("div", { class: "prompt", text: c.ad + (c.lakap ? " “" + c.lakap + "”" : "") }),
+          el("p", { text: "Öne çıkan yanların: " + top.join(", ") + "." }),
+          el("div", { class: "traits row" }, c.ozellikler.map((t) => el("span", { class: "chip", text: t }))),
+          c.link ? el("a", { href: c.link, target: "_blank", rel: "noopener", text: "Bu karakterin dosyasını oku ↗" }) : null,
+          el("div", { class: "row" }, el("button", { class: "btn accent", type: "button", text: "Testi tekrar çöz", onclick: () => startTest(derived()) }), el("button", { class: "btn ghost", type: "button", text: "Oyunlara dön", onclick: quitGame }))));
+      } else {
+        const tq = TEST_QUESTIONS[i];
+        shell.append(el("div", { class: "progress" }, el("i", { style: "width:" + (i / TEST_QUESTIONS.length * 100) + "%" })),
+          el("div", { class: "prompt small", text: tq.q }),
+          el("div", { class: "choices" }, shuffle(tq.a).map(([txt, trait]) => el("button", { class: "choice", type: "button", text: txt, onclick: () => { tally[trait] = (tally[trait] || 0) + 1; i++; step(); } }))));
+      }
+      $("game-play").replaceChildren(shell);
+    };
+    step();
+  }
+
+  // ---------------- Yönetim ----------------
+  function traitChecks(selected) {
+    $("c-traits").replaceChildren(...TRAITS.map((t) => el("label", null, el("input", { type: "checkbox", value: t, checked: selected.includes(t) }), t)));
+  }
+  traitChecks([]);
+
+  function confirmButton(label, onConfirm) {
+    const b = el("button", { class: "btn danger", type: "button", text: label });
+    let armed = false, timer;
+    b.addEventListener("click", () => {
+      if (!armed) { armed = true; b.textContent = "Emin misin?"; timer = setTimeout(() => { armed = false; b.textContent = label; }, 3000); return; }
+      clearTimeout(timer); onConfirm();
+    });
+    return b;
+  }
+
+  function renderAdmin(s) {
+    if (!state.canEdit) return;
+    $("org-list").replaceChildren(...s.orgs.map((o) => el("option", { value: o })));
+    $("char-list").replaceChildren(...(s.chars.length ? s.chars.map((c) => el("div", { class: "list-item" },
+      el("div", { class: "t" }, el("b", { text: c.ad }), c.lakap ? " “" + c.lakap + "” " : " ", el("small", { text: DURUM[c.durum] + (c.olusum ? " · " + c.olusum : "") + (c.ornek ? " · örnek" : "") })),
+      el("button", { class: "btn ghost", type: "button", text: "Düzenle", onclick: () => editChar(c) }),
+      confirmButton("Sil", async () => { try { await state.db.doc("karakterler/" + c.id).delete(); toast("Silindi"); } catch { toast("Silinemedi"); } }),
+    )) : [el("div", { class: "empty", text: "Henüz karakter yok." })]));
+    $("q-list").replaceChildren(...(state.questions.length ? state.questions.map((q) => el("div", { class: "list-item" },
+      el("div", { class: "t" }, q.soru, " ", el("small", { text: "Doğru: " + (q.secenekler[q.dogru] || "?") + (q.ornek ? " · örnek" : "") })),
+      el("button", { class: "btn ghost", type: "button", text: "Düzenle", onclick: () => editQ(q) }),
+      confirmButton("Sil", async () => { try { await state.db.doc("sorular/" + q.id).delete(); toast("Silindi"); } catch { toast("Silinemedi"); } }),
+    )) : [el("div", { class: "empty", text: "Henüz soru yok." })]));
+    if (document.activeElement?.closest?.("#s-form") == null) {
+      $("s-title").value = str(state.site.baslik, 40);
+      $("s-sub").value = str(state.site.altBaslik, 240);
+    }
+  }
+
+  function editChar(c) {
+    state.editingChar = c.id;
+    $("c-ad").value = c.ad; $("c-lakap").value = c.lakap; $("c-durum").value = c.durum; $("c-olusum").value = c.olusum;
+    $("c-meslek").value = c.meslek; $("c-link").value = c.link || ""; $("c-ipucu").value = c.ipucu; traitChecks(c.ozellikler);
+    $("char-form-title").textContent = "Karakteri düzenle"; $("c-cancel").hidden = false; $("c-ad").focus();
+  }
+  function resetCharForm() { state.editingChar = null; $("char-form").reset(); traitChecks([]); $("char-form-title").textContent = "Karakter ekle"; $("c-cancel").hidden = true; }
+  $("c-cancel").addEventListener("click", resetCharForm);
+
+  function charBody(x) {
+    const link = str(x.link, 300);
+    return {
+      ad: str(x.ad, 60), lakap: str(x.lakap, 40), durum: DURUM[x.durum] ? x.durum : "aktif",
+      olusum: str(x.olusum, 60), meslek: str(x.meslek, 60), ipucu: str(x.ipucu, 300),
+      link: link.startsWith("https://") ? link : "",
+      ozellikler: Array.isArray(x.ozellikler) ? x.ozellikler.filter((t) => TRAITS.includes(t)) : [],
+      ornek: false,
+    };
+  }
+
+  let busy = false;
+  $("char-form").addEventListener("submit", async (e) => {
+    e.preventDefault(); if (busy || !state.db) return;
+    const body = charBody({
+      ad: $("c-ad").value, lakap: $("c-lakap").value, durum: $("c-durum").value, olusum: $("c-olusum").value,
+      meslek: $("c-meslek").value, ipucu: $("c-ipucu").value, link: $("c-link").value,
+      ozellikler: [...$("c-traits").querySelectorAll("input:checked")].map((i) => i.value),
+    });
+    if (!body.ad) return;
+    busy = true; $("c-save").disabled = true;
+    try {
+      if (state.editingChar) await state.db.doc("karakterler/" + state.editingChar).set(body);
+      else await state.db.collection("karakterler").add(body);
+      toast(state.editingChar ? "Karakter güncellendi" : "Karakter eklendi"); resetCharForm();
+    } catch (err) { toast(err && err.code === "quota_exceeded" ? "Depolama dolu, eski kayıtları sil" : "Kaydedilemedi"); }
+    busy = false; $("c-save").disabled = false;
+  });
+
+  function editQ(q) {
+    state.editingQ = q.id;
+    $("q-soru").value = q.soru;
+    ["q-a", "q-b", "q-c", "q-d"].forEach((id, i) => ($(id).value = q.secenekler[i] || ""));
+    $("q-dogru").value = String(q.dogru); $("q-aciklama").value = q.aciklama;
+    $("q-form-title").textContent = "Soruyu düzenle"; $("q-cancel").hidden = false; $("q-soru").focus();
+  }
+  function resetQForm() { state.editingQ = null; $("q-form").reset(); $("q-form-title").textContent = "Bilgi yarışması sorusu ekle"; $("q-cancel").hidden = true; }
+  $("q-cancel").addEventListener("click", resetQForm);
+
+  $("q-form").addEventListener("submit", async (e) => {
+    e.preventDefault(); if (busy || !state.db) return;
+    const raw = ["q-a", "q-b", "q-c", "q-d"].map((id) => str($(id).value, 80));
+    const dogruRaw = Number($("q-dogru").value);
+    if (!raw[dogruRaw]) { toast("Doğru cevap olarak seçtiğin şık boş"); return; }
+    const secenekler = raw.filter(Boolean);
+    const dogru = secenekler.indexOf(raw[dogruRaw]);
+    const body = { soru: str($("q-soru").value, 240), secenekler, dogru, aciklama: str($("q-aciklama").value, 200), ornek: false };
+    if (!body.soru || secenekler.length < 2) { toast("Soru ve en az 2 şık gerekli"); return; }
+    busy = true; $("q-save").disabled = true;
+    try {
+      if (state.editingQ) await state.db.doc("sorular/" + state.editingQ).set(body);
+      else await state.db.collection("sorular").add(body);
+      toast(state.editingQ ? "Soru güncellendi" : "Soru eklendi"); resetQForm();
+    } catch { toast("Kaydedilemedi"); }
+    busy = false; $("q-save").disabled = false;
+  });
+
+  $("bulk-go").addEventListener("click", async () => {
+    if (busy || !state.db) return;
+    const out = $("bulk-msg");
+    let arr;
+    try { arr = JSON.parse($("bulk").value); } catch { out.textContent = "JSON okunamadı. Köşeli parantezle başlayan bir liste yapıştır."; return; }
+    if (!Array.isArray(arr)) { out.textContent = "Bir liste ([ ... ]) bekleniyordu."; return; }
+    const items = arr.filter((x) => x && typeof x === "object").map(charBody).filter((x) => x.ad).slice(0, 200);
+    if (!items.length) { out.textContent = "Eklenecek geçerli karakter bulunamadı (en azından 'ad' gerekli)."; return; }
+    busy = true; $("bulk-go").disabled = true; let n = 0;
+    for (const it of items) { try { await state.db.collection("karakterler").add(it); n++; out.textContent = n + " / " + items.length + " eklendi…"; } catch { break; } }
+    out.textContent = n + " karakter eklendi."; if (n === items.length) $("bulk").value = "";
+    busy = false; $("bulk-go").disabled = false;
+  });
+
+  $("s-form").addEventListener("submit", async (e) => {
+    e.preventDefault(); if (busy || !state.db) return;
+    busy = true;
+    try { await state.db.doc("ayar/site").set({ baslik: str($("s-title").value, 40), altBaslik: str($("s-sub").value, 240) }); toast("Ayarlar kaydedildi"); }
+    catch { toast("Kaydedilemedi"); }
+    busy = false;
+  });
+
+  $("del-samples").replaceWith((() => {
+    const b = confirmButton("Örnek verileri sil", async () => {
+      const m = $("del-samples-msg"); let n = 0;
+      for (const c of state.chars.filter((c) => c.ornek)) { try { await state.db.doc("karakterler/" + c.id).delete(); n++; } catch {} }
+      for (const q of state.questions.filter((q) => q.ornek)) { try { await state.db.doc("sorular/" + q.id).delete(); n++; } catch {} }
+      m.textContent = n + " örnek kayıt silindi.";
+    });
+    b.id = "del-samples"; return b;
+  })());
+
+  // ---------------- Başlat ----------------
+  route(); renderAll();
+
+  (async () => {
+    status("Dosyalar yükleniyor…");
+    const [db, user] = await Promise.all([window.claude?.use?.("db") ?? null, window.claude?.use?.("user") ?? null]);
+    state.db = db; state.user = user;
+    if (user) {
+      try { state.me = await user.id(); } catch { state.me = null; }
+      try { state.canEdit = !!(await user.canEdit()); } catch { state.canEdit = false; }
+    }
+    $("tab-admin").hidden = !state.canEdit;
+    route();
+    if (!db) { status("Veriler bu görünümde açılamıyor. Sayfayı claude.ai üzerinden, giriş yaparak açman gerekiyor.", true); return; }
+
+    let pending = 3;
+    const timer = setTimeout(() => status("Veriler henüz gelmedi; bağlantını kontrol et. Gelince sayfa kendiliğinden dolacak.", true), 10000);
+    const settle = (snap) => { if (snap && !snap.metadata.fromCache && pending > 0 && --pending === 0) { clearTimeout(timer); status(""); } };
+    const fail = () => { clearTimeout(timer); status("Veriler yüklenemedi. Sayfayı daha sonra yeniden aç.", true); };
+
+    db.collection("karakterler").onSnapshot((snap) => {
+      state.chars = snap.docs.map(normChar).sort((a, b) => a.ad.localeCompare(b.ad, "tr"));
+      settle(snap); renderAll();
+    }, fail);
+    db.collection("sorular").onSnapshot((snap) => { state.questions = snap.docs.map(normQ); settle(snap); renderAll(); }, fail);
+    db.collection("skorlar").onSnapshot((snap) => {
+      state.scores = snap.docs.map((d) => { const x = d.data() || {}; const r = { id: d.id }; for (const g of GAMES) if (g.id !== "test") r[g.id] = Math.max(0, Math.min(ROUNDS, Number(x[g.id]) || 0)); r.toplam = GAMES.reduce((a, g) => a + (r[g.id] || 0), 0); return r; });
+      settle(snap); renderAll();
+    }, fail);
+    db.doc("ayar/site").onSnapshot((d) => { state.site = d.exists ? (d.data() || {}) : {}; renderAll(); }, () => {});
+  })();
+})();
+</script>
