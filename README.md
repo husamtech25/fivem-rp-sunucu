@@ -46,6 +46,8 @@ NPC'ler `npcler.json` dosyasında saklanır; `/npcsil` en yakın NPC'yi siler.
 | `ox_inventory/data/shops.lua` | `Eczane` dükkanı eklendi; polis cephaneliğine `polis_tablet` | `eczane` NPC'si için, konumsuz; polis tableti |
 | `ox_inventory/data/items.lua` | `polis_tablet` eşyası (kullanınca `polistablet` açılır) | Polis tableti |
 | `qbx_police/config/shared.lua` | MRPD mesai noktası kapatıldı | Yerine mesai NPC'si |
+| `qbx_hud/html/ehud.js`, `ehud.css` (yeni), `index.html`, `app.js` | Oyuncu göstergeleri yeniden tasarlandı: ince yuvarlak neon halkalar, aynı stilde SVG ikonlar, değere göre renk geçişi, kritikte yanıp sönme; I menüsünde konum / ölçek / yüzde / parlama ayarı | Modern HUD. Gösterge mantığı (hudTick, dinamik gösterme ayarları) aynen duruyor |
+| `qbx_hud/client/main.lua` | `hudtick` mesajına `inWater` eklendi | Karada Dayanıklılık, suda Oksijen gösterilsin |
 | `qbx_management`, `qbx_cityhall`, `qbx_ambulancejob`, `qbx_mechanicjob` `config/client.lua` | `useTarget = true` | E yazıları yerine Sol Alt, NPC'lerle çakışmasın |
 | `qbx_core/config/shared.lua` | `serverName = 'Endcore RP'` | Sunucu adı |
 | `illenium-appearance/shared/config.lua` | `UseTarget = true`, `EnablePedsForShops = false` | Satıcıları `/npckoy` ile kasaya koyuyoruz |
