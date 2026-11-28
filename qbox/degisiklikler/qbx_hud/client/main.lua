@@ -288,6 +288,8 @@ RegisterNetEvent('hud:client:LoadMap', function()
         -- 0.262 = map stretched
         -- 0.315 = map shorten
         SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01 + minimapOffset, 0.025, 0.262, 0.300)
+        -- [Huso] Endcore: oyuncunun seçtiği harita konumu / boyutu (client/ehud_harita.lua)
+        if EndHaritaKonumla then EndHaritaKonumla(minimapOffset) end
         SetBlipAlpha(GetNorthRadarBlip(), 0)
         SetBigmapActive(true, false)
         SetMinimapClipType(0)

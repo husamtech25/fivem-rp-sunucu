@@ -14,6 +14,7 @@
         <script src="app.js" defer></script>
     </head>
     <body>
+        <div id="ehud-harita"></div> <!-- [Huso] harita çerçevesi (ehud.js) -->
         <div id="baseplate-container" v-show="show">
             <div v-if="showStreets" class="street-container">
                 <div class="street2">{{street2}}</div>
@@ -88,6 +89,26 @@
                                         <q-slider v-model="duzen.y" :min="-100" :max="600" :step="5" color="checkbox"></q-slider>
                                         <q-checkbox v-model="duzen.sayi" label="Göstergelerin altında yüzdeleri göster" color="checkbox" style="display: flex;"></q-checkbox>
                                         <q-checkbox v-model="duzen.parlama" label="Neon parlama" color="checkbox" style="display: flex;"></q-checkbox>
+                                        <div class="q-mt-md text-subtitle1">Harita (kare harita)</div>
+                                        <div>Yatay kaydırma: {{ harita.x }} px</div>
+                                        <q-slider v-model="harita.x" :min="-100" :max="1200" :step="5" color="checkbox"></q-slider>
+                                        <div>Dikey kaydırma: {{ harita.y }} px</div>
+                                        <q-slider v-model="harita.y" :min="-50" :max="700" :step="5" color="checkbox"></q-slider>
+                                        <div>Genişlik: {{ harita.genislik }}%</div>
+                                        <q-slider v-model="harita.genislik" :min="60" :max="200" :step="5" color="checkbox"></q-slider>
+                                        <div>Yükseklik: {{ harita.yukseklik }}%</div>
+                                        <q-slider v-model="harita.yukseklik" :min="60" :max="200" :step="5" color="checkbox"></q-slider>
+                                        <q-checkbox v-model="harita.cerceve" label="Haritanın etrafında ince çerçeve" color="checkbox" style="display: flex;"></q-checkbox>
+                                        <div class="q-mt-sm text-caption">Çerçeve ince ayarı (çerçeve haritaya tam oturmuyorsa; harita yerinde kalır)</div>
+                                        <div>Çerçeve sağa / sola: {{ harita.ix }} px</div>
+                                        <q-slider v-model="harita.ix" :min="-100" :max="100" :step="1" color="checkbox"></q-slider>
+                                        <div>Çerçeve yukarı / aşağı: {{ harita.iy }} px</div>
+                                        <q-slider v-model="harita.iy" :min="-100" :max="100" :step="1" color="checkbox"></q-slider>
+                                        <div>Çerçeve genişliği: {{ harita.iw > 0 ? '+' : '' }}{{ harita.iw }} px</div>
+                                        <q-slider v-model="harita.iw" :min="-150" :max="150" :step="1" color="checkbox"></q-slider>
+                                        <div>Çerçeve yüksekliği: {{ harita.ih > 0 ? '+' : '' }}{{ harita.ih }} px</div>
+                                        <q-slider v-model="harita.ih" :min="-150" :max="150" :step="1" color="checkbox"></q-slider>
+                                        <q-btn class="q-mt-sm" text-color="textbutton" color="bgbutton" @click="haritaSifirla" label="Haritayı varsayılana döndür" no-caps></q-btn>
                                         <div class="q-mt-md">Araç HUD'u konumu</div>
                                         <q-btn-toggle v-model="duzen.aracKonum" no-caps unelevated toggle-color="checkbox" text-color="white" color="grey-9"
                                             :options="[{label: 'Sağ alt', value: 'sag-alt'}, {label: 'Alt orta', value: 'alt-orta'}]"></q-btn-toggle>
@@ -228,7 +249,7 @@
                 </div>
             </div>
             <div id="ui-container">
-                <div id="playerHud" v-show="show" class="ehud" :class="'ehud-' + duzen.konum" :style="hudStil">
+                <div id="playerHud" v-show="show" class="ehud" :class="['ehud-' + duzen.konum, { 'ehud-dikey': haritaYaninda }]" :style="hudStil">
                     <!-- [Huso] Endcore HUD: ince yuvarlak göstergeler (ehud.js / ehud.css) -->
                     <transition-group name="ehud-gecis" tag="div" class="ehud-sira">
                         <e-gosterge key="ses" v-if="showVoice" :ikon="radio ? 'kulaklik' : 'mikrofon'" :deger="sesSeviyesi" :renk="sesRenk"

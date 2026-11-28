@@ -70,6 +70,8 @@ const app = Vue.createApp({
       startComputing,
       duzen: hudDuzen,              // [Huso] HUD konum / ölçek ayarları (ehud.js)
       duzenSifirla: hudDuzenSifirla,
+      harita: haritaAyar,            // [Huso] harita konumu / boyutu (ehud.js)
+      haritaSifirla,
     }
   },
   watch: {
@@ -724,6 +726,8 @@ const playerHud = {
       customIndicators: [],
       inWater: false, // [Huso] sudaysa dayanıklılık yerine oksijen gösterilir
       duzen: hudDuzen, // [Huso]
+      arac: aracDurum, // [Huso]
+      harita: haritaDurum, // [Huso]
     };
   },
   
@@ -743,7 +747,20 @@ const playerHud = {
       const v = Number(this.voice) || 0;
       return v > 0 ? Math.max(18, Math.min(100, v / 6 * 100)) : 0;
     },
+    haritaYaninda() {
+      // harita çerçevesi görünüyorsa (yaya veya araç) ve HUD sol altta duruyorsa: göstergeler haritanın sağında, dikey
+      return this.harita.goster && !!this.harita.kutu && this.duzen.konum === 'sol-alt';
+    },
     hudStil() {
+      if (this.haritaYaninda) {
+        const k = this.harita.kutu;
+        return {
+          left: `calc(${(k.sol + k.gen) * 100}vw + 14px)`,
+          bottom: `${k.alt * 100}vh`,
+          height: `${k.yuk * 100}vh`,
+          transform: `scale(${this.duzen.olcek})`,
+        };
+      }
       const d = this.duzen;
       const orta = d.konum === 'alt-orta' || d.konum === 'ust-orta';
       const dikey = d.konum === 'ust-orta' ? d.y : -d.y;
@@ -1070,6 +1087,7 @@ const vehHud = {
   methods: {
     vehicleHud(data) {
       this.show = data.show;
+      aracDurum.icinde = data.show === true; // [Huso] karakter göstergeleri haritanın yanına dizilsin
       this.speed = data.speed;
       // [Huso] Endcore araç HUD'u
       this.kmh = Number(data.kmh) || 0;

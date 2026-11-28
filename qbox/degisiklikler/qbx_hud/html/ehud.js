@@ -116,3 +116,75 @@ const EGosterge = {
             <span v-if="duzen.sayi" class="eg-sayi">{{ Math.round(doluluk) }}</span>
         </div>`,
 };
+
+// ================= Harita (minimap) çerçevesi ve ayarları =================
+// Haritanın kendisini GTA çizer; Lua (client/ehud_harita.lua) haritanın ekrandaki yerini hesaplayıp
+// gönderir, burada o kutunun etrafına ince yuvarlak bir çerçeve çizilir.
+
+const haritaDurum = Vue.reactive({ goster: false, kutu: null });
+// Araçtayken karakter göstergeleri haritanın sağında yukarıdan aşağı dizilir
+const aracDurum = Vue.reactive({ icinde: false });
+const haritaAyar = Vue.reactive({ x: -10, y: 0, genislik: 100, yukseklik: 100, cerceve: true, ix: 33, iy: 14, iw: 0, ih: 0 });
+let haritaLuadanGeliyor = false;
+let haritaZamanlayici = null;
+
+function haritaPost(ad, veri) {
+    if (typeof GetParentResourceName !== 'function') return;
+    fetch(`https://${GetParentResourceName()}/${ad}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+        body: JSON.stringify(veri || {}),
+    }).catch(() => {});
+}
+
+window.addEventListener('message', (olay) => {
+    const d = olay.data || {};
+    if (d.action !== 'endHarita') return;
+    haritaDurum.goster = d.goster === true;
+    haritaDurum.kutu = d.kutu || null;
+    if (d.ayar) {
+        haritaLuadanGeliyor = true;
+        Object.assign(haritaAyar, d.ayar);
+        Vue.nextTick(() => { haritaLuadanGeliyor = false; });
+    }
+});
+
+// Menüde kaydırıcı oynatılınca Lua'ya gönder (çok sık gitmesin diye kısa bekleme)
+Vue.watch(haritaAyar, () => {
+    if (haritaLuadanGeliyor) return;
+    clearTimeout(haritaZamanlayici);
+    haritaZamanlayici = setTimeout(() => haritaPost('endHaritaAyar', { ...haritaAyar }), 250);
+}, { deep: true });
+
+function haritaSifirla() {
+    Object.assign(haritaAyar, { x: -10, y: 0, genislik: 100, yukseklik: 100, cerceve: true, ix: 33, iy: 14, iw: 0, ih: 0 });
+}
+
+const EHarita = {
+    data() { return { durum: haritaDurum, duzen: hudDuzen }; },
+    computed: {
+        stil() {
+            const k = this.durum.kutu;
+            if (!k) return {};
+            return {
+                left: `${k.sol * 100}vw`,
+                bottom: `${k.alt * 100}vh`,
+                width: `${k.gen * 100}vw`,
+                height: `${k.yuk * 100}vh`,
+            };
+        },
+    },
+    template: `
+        <transition name="ehud-gecis">
+            <div v-if="durum.goster && durum.kutu" class="eharita" :class="{ 'eg-parlak': duzen.parlama }" :style="stil">
+                <div class="eharita-pencere"></div>
+                <span class="eharita-k"></span>
+            </div>
+        </transition>`,
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const yer = document.getElementById('ehud-harita');
+    if (yer) Vue.createApp(EHarita).mount(yer);
+    haritaPost('endHaritaIste');
+});
