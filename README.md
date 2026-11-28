@@ -9,6 +9,7 @@ Hazır Qbox scriptlerinin tamamı burada değil; onlar kendi GitHub depolarında
 |---|---|
 | `qbox/huso/polisyardim` | Polis noktalarına yer işaretleri + `/npckoy <tür>` ile yerleştirilen NPC'ler |
 | `qbox/huso/kisayollar` | Admin kısayolları: F6 admin görevi (`/optin`), F10 admin menüsü (`/admin`) |
+| `qbox/huso/endnpc` | NPC yönetim paneli (`/npcpanel`, F7): NPC'ler, gruplar, grup ilişkileri, otomatik NPC savaşı, hazır ekip şablonları, devriye rotası, araçlı NPC'ler ve korunan bölgeler. Ayrıntı: klasördeki README |
 | `qbox/degisiklikler` | Hazır Qbox scriptlerinde değiştirdiğimiz dosyalar (açıklamalar aşağıda) |
 | `qbox/cfg` | `ox.cfg`, `permissions.cfg` ve lisans anahtarı silinmiş `server.cfg.ornek` |
 | `qbox/sql/mrpd_kapilar.sql` | MRPD'nin 31 kapı kilidi (ox_doorlock tablosuna) |

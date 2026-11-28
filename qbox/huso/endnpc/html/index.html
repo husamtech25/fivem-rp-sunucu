@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Endcore RP · NPC Yönetimi</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="panel" class="panel gizli">
+    <header class="ust">
+        <div class="baslik">
+            <span class="logo">E</span>
+            <div>
+                <h1>NPC Yönetimi</h1>
+                <small>Endcore RP</small>
+            </div>
+        </div>
+        <nav class="sekmeler">
+            <button data-sekme="npc" class="aktif">NPC'ler</button>
+            <button data-sekme="grup">Gruplar</button>
+            <button data-sekme="iliski">İlişkiler</button>
+            <button data-sekme="sablon">Şablonlar</button>
+            <button data-sekme="bolge">Bölgeler</button>
+            <button data-sekme="ayar">Ayarlar</button>
+        </nav>
+        <div class="istatistik" id="istatistik"></div>
+        <button class="kapat" id="kapatBtn" title="Kapat (ESC)">✕</button>
+    </header>
+
+    <!-- ============ NPC'ler ============ -->
+    <section class="sekme" id="sekme-npc">
+        <div class="arac">
+            <input type="search" id="npcAra" placeholder="Ad, model veya silah ara…">
+            <select id="npcGrupFiltre"></select>
+            <select id="npcDurumFiltre">
+                <option value="">Tüm durumlar</option>
+                <option value="canli">Canlı</option>
+                <option value="olu">Ölü</option>
+                <option value="bekliyor">Doğmayı bekliyor</option>
+                <option value="kapali">Kapalı</option>
+                <option value="hata">Hatalı</option>
+            </select>
+            <span class="bosluk"></span>
+            <button class="birincil" id="yeniNpcBtn">+ Yeni NPC</button>
+        </div>
+        <div class="toplu-cubuk gizli" id="npcTopluCubuk">
+            <span id="npcSeciliYazi"></span>
+            <button id="npcTopluDuzenleBtn">Toplu düzenle</button>
+            <button id="npcTopluDogurBtn">Yeniden doğur</button>
+            <button id="npcTopluAcBtn">Etkinleştir</button>
+            <button id="npcTopluKapatBtn">Devre dışı bırak</button>
+            <button id="npcSablonYapBtn">Şablon olarak kaydet</button>
+            <button class="tehlike" id="npcTopluSilBtn">Sil</button>
+            <button class="yazi" id="npcSecimTemizleBtn">Seçimi kaldır</button>
+        </div>
+        <div class="tablo-kap">
+            <table class="tablo">
+                <thead>
+                <tr>
+                    <th class="dar"><input type="checkbox" id="npcHepsiniSec"></th>
+                    <th>Ad</th>
+                    <th>Grup</th>
+                    <th>Model</th>
+                    <th>Silah</th>
+                    <th>Davranış</th>
+                    <th>Durum</th>
+                    <th class="sag">İşlemler</th>
+                </tr>
+                </thead>
+                <tbody id="npcListe"></tbody>
+            </table>
+            <div class="bos gizli" id="npcBos">
+                <p>Henüz NPC yok.</p>
+                <button class="birincil" id="ilkNpcBtn">+ İlk NPC'yi oluştur</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ Gruplar ============ -->
+    <section class="sekme gizli" id="sekme-grup">
+        <div class="arac">
+            <span class="aciklama">Gruplar NPC'lerin takımıdır. Savaş ayarları grup başına yapılır.</span>
+            <span class="bosluk"></span>
+            <button id="grupTopluDuzenleBtn" disabled>Seçilenleri toplu düzenle</button>
+            <button class="birincil" id="yeniGrupBtn">+ Yeni grup</button>
+        </div>
+        <div class="kartlar" id="grupListe"></div>
+    </section>
+
+    <!-- ============ İlişkiler ============ -->
+    <section class="sekme gizli" id="sekme-iliski">
+        <div class="arac">
+            <span class="aciklama">Satırdaki grubun sütundaki gruba bakışı. İlişkiler karşılıklıdır. <b class="r-dusman">Düşman</b> gruplar birbirini görünce çatışır.</span>
+        </div>
+        <div class="tablo-kap" id="iliskiKap"></div>
+    </section>
+
+    <!-- ============ Şablonlar ============ -->
+    <section class="sekme gizli" id="sekme-sablon">
+        <div class="arac">
+            <span class="aciklama">Hazır NPC ekipleri. Tek tıkla seçtiğin gruba ve konuma yerleştirilir.
+                Kendi şablonunu yapmak için NPC'ler sekmesinde NPC'leri seç → <b>Şablon olarak kaydet</b>.</span>
+        </div>
+        <div class="kartlar" id="sablonListe"></div>
+    </section>
+
+    <!-- ============ Bölgeler ============ -->
+    <section class="sekme gizli" id="sekme-bolge">
+        <div class="arac">
+            <span class="aciklama">Bir grubun koruduğu alan. Düşman (veya istersen herhangi bir oyuncu) girince
+                bölgedeki o grup ve dostları alarma geçip birlikte saldırır.</span>
+            <span class="bosluk"></span>
+            <button class="birincil" id="yeniBolgeBtn">+ Yeni bölge</button>
+        </div>
+        <div class="kartlar" id="bolgeListe"></div>
+    </section>
+
+    <!-- ============ Ayarlar ============ -->
+    <section class="sekme gizli" id="sekme-ayar">
+        <div class="ayar-izgara">
+            <div class="kutu">
+                <h3>Genel</h3>
+                <div class="form" id="ayarForm"></div>
+                <div class="alt-sag"><button class="birincil" id="ayarKaydetBtn">Kaydet</button></div>
+            </div>
+            <div class="kutu">
+                <h3>Görünüm (sadece senin ekranın)</h3>
+                <label class="onay"><input type="checkbox" id="gorselBlip"> NPC'leri haritada göster</label>
+                <label class="onay"><input type="checkbox" id="gorselEtiket"> NPC'lerin başında isim ve can göster (rotaları da çizer)</label>
+                <label class="onay"><input type="checkbox" id="gorselBolge"> Bölgeleri haritada ve yerde göster</label>
+                <h3>Hızlı işlemler</h3>
+                <div class="dikey">
+                    <button id="hepsiniDogurBtn">Tüm etkin NPC'leri yeniden doğur</button>
+                </div>
+                <h3>İpuçları</h3>
+                <ul class="ipucu">
+                    <li>Panel: <b>/npcpanel</b> veya <b>F7</b>. Önce F6 ile admin görevini aç.</li>
+                    <li>"Nişan al" ile yerleştirirken <b>E</b> koyar, <b>tekerlek</b> döndürür, <b>Backspace</b> iptal eder.</li>
+                    <li>Yapay zeka aralığı küçüldükçe NPC'ler daha hızlı tepki verir ama işlemci yükü artar. 500 ms iyi bir değer.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Sağdan açılan düzenleme çekmecesi -->
+<div id="cekmece" class="cekmece gizli">
+    <div class="cekmece-ic">
+        <div class="cekmece-ust">
+            <h2 id="cekmeceBaslik"></h2>
+            <button class="kapat" data-kapat="cekmece">✕</button>
+        </div>
+        <div class="form" id="cekmeceForm"></div>
+        <div class="cekmece-alt">
+            <button class="yazi" data-kapat="cekmece">Vazgeç</button>
+            <button class="birincil" id="cekmeceKaydet">Kaydet</button>
+        </div>
+    </div>
+</div>
+
+<!-- Ortada açılan pencere (onay, toplu düzenleme) -->
+<div id="modal" class="modal gizli">
+    <div class="modal-ic">
+        <h2 id="modalBaslik"></h2>
+        <div id="modalIcerik"></div>
+        <div class="modal-alt">
+            <button class="yazi" data-kapat="modal">Vazgeç</button>
+            <button class="birincil" id="modalTamam">Tamam</button>
+        </div>
+    </div>
+</div>
+
+<div id="bildirimler" class="bildirimler"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
