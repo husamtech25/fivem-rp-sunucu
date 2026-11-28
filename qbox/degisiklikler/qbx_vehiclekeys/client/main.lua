@@ -37,6 +37,29 @@ local function toggleLock(vehicle)
     end
 end
 
+-- [Huso] Envanterde "Araç anahtarı" kullanılınca: yakındaki o plakalı aracın kilidini aç / kapat
+-- (ox_inventory data/items.lua: client.export = 'qbx_vehiclekeys.anahtarKullan')
+exports('anahtarKullan', function(_, slot)
+    local plaka = slot and slot.metadata and slot.metadata.plate
+    if not plaka then
+        exports.qbx_core:Notify('Bu anahtarın üzerinde plaka yok.', 'error')
+        return
+    end
+    local benim = GetEntityCoords(cache.ped)
+    local enYakin, enYakinMesafe
+    for _, arac in ipairs(lib.getNearbyVehicles(benim, 30.0, true)) do
+        if qbx.getVehiclePlate(arac.vehicle) == plaka then
+            local mesafe = #(benim - arac.coords)
+            if not enYakinMesafe or mesafe < enYakinMesafe then enYakin, enYakinMesafe = arac.vehicle, mesafe end
+        end
+    end
+    if not enYakin then
+        exports.qbx_core:Notify(('%s plakalı araç yakında değil.'):format(plaka), 'error')
+        return
+    end
+    toggleLock(enYakin)
+end)
+
 ---if the player does not have ignition access to the vehicle:
 ---check whether to give keys if engine is on
 ---disable the engine and listen for search keys if applicable to the vehicle

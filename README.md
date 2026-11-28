@@ -41,6 +41,7 @@ NPC'ler `npcler.json` dosyasında saklanır; `/npcsil` en yakın NPC'yi siler.
 |---|---|---|
 | `qbx_ambulancejob/server/main.lua` | Eczane/dolap kaydı 30 sn'ye kadar tekrar deneniyor | Açılışta `No such export RegisterShop in resource ox_inventory` hatası |
 | `qbx_vehiclekeys/client/main.lua` | Motor tuşu varsayılanı `J` | `config.keySearchBind` tanımlı değildi |
+| `qbx_vehiclekeys/server/keys.lua`, `client/functions.lua`, `client/main.lua` + `ox_inventory/data/items.lua` | Fiziksel araç anahtarı: `arac_anahtari` eşyası (metadata.plate). GiveKeys envantere anahtar da verir (zaten varsa vermez); HasKeys envanterde o plakanın anahtarı varsa erişim verir; anahtar elden çıkınca (yere, başkasına, depoya) erişim gider; anahtarı kullanmak yakındaki aracın kilidini açar / kapatır. Araç sahibi kendi aracını yine her zaman kullanır | Her araca ait, verilip alınabilen anahtar |
 | `ox_lib/.../textui.lua` | `[E]` yazıları büyütüldü | Varsayılan yazı çok küçüktü |
 | `ox_doorlock/config.lua` | `DrawTextUI = true` | Kapıda "[E] Kilidi aç" yazısı çıksın |
 | `ox_inventory/data/shops.lua` | `Eczane` dükkanı eklendi; polis cephaneliğine `polis_tablet` | `eczane` NPC'si için, konumsuz; polis tableti |

@@ -656,4 +656,19 @@ return {
             export = 'polistablet.tabletKullan',
         },
     },
+
+    -- [Huso] Fiziksel araç anahtarı: her anahtar bir plakaya ait (metadata.plate).
+    -- Kimin envanterindeyse araç ona açılır; kullanınca yakındaki o aracın kilidini açar / kapatır.
+    -- Bağlantı: qbx_vehiclekeys (server/keys.lua, client/functions.lua, client/main.lua)
+    ['arac_anahtari'] = {
+        label = 'Araç anahtarı',
+        weight = 50,
+        stack = false,
+        close = true,
+        description = 'Aracın kilidini açar / kapatır',
+        client = {
+            image = 'carkey.png',
+            export = 'qbx_vehiclekeys.anahtarKullan',
+        },
+    },
 }
