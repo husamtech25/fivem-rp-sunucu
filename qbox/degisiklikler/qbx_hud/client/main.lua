@@ -561,6 +561,22 @@ end
 
 local prevVehicleStats = {nil, nil, nil, nil, nil, nil, nil, nil, nil, nil}
 
+-- [Huso] Endcore araç HUD'u için ek veriler. Hepsi oyunun kendi değerleri:
+-- KM/H hız, devir (0-1), vites (0 = geri), motor çalışıyor mu, farlar (0 kapalı / 1 açık / 2 uzun),
+-- motor sağlığı (%), araç sınıfı (motor, tekne, helikopter, uçak... ayrımı için)
+local function endAracVerisi(arac)
+    local _, farAcik, uzunFar = GetVehicleLightsState(arac)
+    local far = (uzunFar == 1 or uzunFar == true) and 2 or ((farAcik == 1 or farAcik == true) and 1 or 0)
+    local motorSagligi = math.max(0, math.min(100, math.floor(GetVehicleEngineHealth(arac) / 10)))
+    return math.floor(GetEntitySpeed(arac) * 3.6),
+        math.floor(GetVehicleCurrentRpm(arac) * 100) / 100,   -- 0.01 adım: gereksiz mesaj gitmesin
+        GetVehicleCurrentGear(arac),
+        GetIsVehicleEngineRunning(arac),
+        far,
+        motorSagligi,
+        GetVehicleClass(arac)
+end
+
 local function updateVehicleHud(data)
     local shouldUpdate = false
     local invOpen = LocalPlayer.state.invOpen
@@ -581,6 +597,14 @@ local function updateVehicleHud(data)
             showSeatbelt = data[8],
             showSquareB = data[9],
             showCircleB = data[10],
+            -- [Huso] Endcore araç HUD'u
+            kmh = data[11],
+            rpm = data[12],
+            gear = data[13],
+            engineOn = data[14],
+            lights = data[15],
+            engineHealth = data[16],
+            vehClass = data[17],
         })
     end
 end
@@ -726,6 +750,7 @@ CreateThread(function()
                     showSeatbelt,
                     showSquareB,
                     showCircleB,
+                    endAracVerisi(cache.vehicle), -- [Huso]
                 })
                 showAltitude = false
                 showSeatbelt = true
@@ -1051,6 +1076,7 @@ RegisterNetEvent('qbx_hud:client:showHud', function()
             showSeatbelt,
             showSquareB,
             showCircleB,
+            endAracVerisi(cache.vehicle), -- [Huso]
         })
     end
 end)

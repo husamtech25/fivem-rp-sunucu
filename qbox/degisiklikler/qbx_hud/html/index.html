@@ -88,6 +88,11 @@
                                         <q-slider v-model="duzen.y" :min="-100" :max="600" :step="5" color="checkbox"></q-slider>
                                         <q-checkbox v-model="duzen.sayi" label="Göstergelerin altında yüzdeleri göster" color="checkbox" style="display: flex;"></q-checkbox>
                                         <q-checkbox v-model="duzen.parlama" label="Neon parlama" color="checkbox" style="display: flex;"></q-checkbox>
+                                        <div class="q-mt-md">Araç HUD'u konumu</div>
+                                        <q-btn-toggle v-model="duzen.aracKonum" no-caps unelevated toggle-color="checkbox" text-color="white" color="grey-9"
+                                            :options="[{label: 'Sağ alt', value: 'sag-alt'}, {label: 'Alt orta', value: 'alt-orta'}]"></q-btn-toggle>
+                                        <div class="q-mt-md">Araç HUD'u ölçeği: {{ Math.round(duzen.aracOlcek * 100) }}%</div>
+                                        <q-slider v-model="duzen.aracOlcek" :min="0.6" :max="1.6" :step="0.05" color="checkbox"></q-slider>
                                         <q-btn class="q-mt-sm" text-color="textbutton" color="bgbutton" @click="duzenSifirla" label="Varsayılana dön" no-caps></q-btn>
                                     </div>
                                     <hr>
@@ -249,26 +254,32 @@
             </div>
             <div id="veh-container">
                 <div v-show="show">
-                    <div class="responsive" id="speedometer">
-                        <q-circular-progress class="q-ml-xl" style="transform: rotate(-150deg); opacity: 60%;" :value="speedometer" size="70px" :thickness="0.21" color="gauge" :min="0" :max="100"></q-circular-progress>
-                        <q-circular-progress class="q-ml-xl" style="transform: rotate(-150deg); left: -50%;" show-value :value="speed" size="70px" :thickness="0.21" color="gauge" :min="0" :max="600">
-                        <speed>{{(speed)}}</speed>
-                    </div>
-                    <div class="responsive" id="fuelgauge">
-                        <q-circular-progress class="q-ml-xl" style="transform: rotate(-125deg); opacity: 60%;" :value="fuelgauge" size="36px" :thickness="0.21" color="gauge" :min="0" :max="100"></q-circular-progress>
-                        <q-circular-progress class="q-ml-xl" style="transform: rotate(-125deg); left: -50%;" show-value :value="fuel" size="36px" :thickness="0.21" :style="{color: fuelColor}">
-                        <q-icon name="fas fa-gas-pump" style="transform: rotate(125deg);" size="14px" color="white"/>
-                    </div>
-                    <div class="responsive" id="altitudegauge" v-if="showAltitude">
-                        <q-circular-progress class="q-ml-xl" style="transform: rotate(-135deg); opacity: 60%;" :value="altitudegauge" size="70px" :thickness="0.21" color="gauge" :min="0" :max="100"></q-circular-progress>
-                        <q-circular-progress class="q-ml-xl" style="transform: rotate(-135deg); left: -50%;" show-value :value="altitude" size="70px" :thickness="0.21" color="gauge" :min="0" :max="750">
-                        <altitude>{{(altitude)}}</altitude>
-                    </div>
-                    <transition name="fade">
-                    <div class="responsive" id="seatbelt" v-if="showSeatbelt">
-                        <q-circular-progress class="q-ml-xl" style="transform: rotate(-125deg); opacity: 60%;" size="70px" :thickness="0.21" color="gauge" :min="0" :max="100"></q-circular-progress>
-                        <q-circular-progress class="q-ml-xl" style="transform: rotate(-125deg); left: -40%;" show-value size="70px" :thickness="0.21" color="gauge" :min="0" :max="750">
-                        <q-icon name="fas fa-user-slash" style="transform: rotate(125deg);" :value="seatbelt" size="21px" :style="{color: seatbeltColor}"/>
+                    <!-- [Huso] Endcore araç HUD'u (ehud.js / ehud.css). Eski hız / yakıt / irtifa / kemer göstergelerinin yerine. -->
+                    <transition name="ahud-gecis">
+                    <div v-if="show" class="ahud" :class="['ahud-' + duzen.aracKonum, { 'eg-parlak-arac': duzen.parlama }]" :style="aracStil">
+                        <div class="ahud-kadran" :class="{ kapali: !engineOn }" :style="{ '--devir': devirRenk }">
+                            <svg viewBox="0 0 200 200" aria-hidden="true">
+                                <path class="ahud-iz" d="M27.25 142 A84 84 0 1 1 172.75 142" pathLength="100"></path>
+                                <path class="ahud-kirmizi" d="M27.25 142 A84 84 0 1 1 172.75 142" pathLength="100"></path>
+                                <path class="ahud-cizgi" d="M37.65 136 A72 72 0 1 1 162.35 136" pathLength="100"></path>
+                                <path class="ahud-devir" :class="{ sinirda: devirYuzde >= 95 }" d="M27.25 142 A84 84 0 1 1 172.75 142" pathLength="100" :style="{ strokeDashoffset: 100 - devirYuzde }"></path>
+                            </svg>
+                            <div class="ahud-merkez">
+                                <div class="ahud-hiz"><span class="sifir">{{ hizSifir }}</span>{{ hizRakam }}</div>
+                                <div class="ahud-birim">KM/H</div>
+                                <div v-if="hava" class="ahud-vites" style="--vites: #c6ff4d">ALT {{ altitude }}</div>
+                                <div v-else class="ahud-vites" :style="{ '--vites': vitesRenk }">{{ vitesHarf }}<sup v-if="vitesNo">{{ vitesNo }}</sup></div>
+                            </div>
+                        </div>
+                        <div class="ahud-yan">
+                            <e-gosterge ikon="yakit" :deger="yakit" :renk="yakitRenk" :kritik="yakit <= 15" etiket="Yakıt"></e-gosterge>
+                            <e-gosterge ikon="anahtar" :deger="motorSagligi" :renk="motorRenk" :kritik="motorSagligi <= 25" etiket="Motor sağlığı"></e-gosterge>
+                            <div class="ahud-durum">
+                                <span class="ahud-isik" :class="{ acik: engineOn }" style="--isik: #3ef08a" title="Motor"><svg viewBox="0 0 24 24" v-html="ikon.motor"></svg></span>
+                                <span class="ahud-isik" :class="{ acik: lights > 0 }" :style="{ '--isik': lights === 2 ? '#5b8cff' : '#ffe14d' }" :title="lights === 2 ? 'Uzun far' : 'Farlar'"><svg viewBox="0 0 24 24" v-html="ikon.far"></svg></span>
+                                <span v-if="kemerVar" class="ahud-isik" :class="{ acik: seatbelt === 1, uyari: seatbelt !== 1 && kmh > 10 }" style="--isik: #3ef08a" title="Emniyet kemeri"><svg viewBox="0 0 24 24" v-html="ikon.emniyet"></svg></span>
+                            </div>
+                        </div>
                     </div>
                     </transition>
                     <div class="border">

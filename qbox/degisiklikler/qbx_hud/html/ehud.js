@@ -24,6 +24,11 @@ const EHUD_IKONLAR = {
     hiz: '<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>',
     alev: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
     terminal: '<path d="m4 17 6-6-6-6"/><path d="M12 19h8"/>',
+    // araç HUD'u
+    yakit: '<path d="M3 22V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v17"/><path d="M2 22h13"/><path d="M14 11h2a2 2 0 0 1 2 2v3a2 2 0 0 0 4 0V9l-3-3"/><path d="M6 8h5"/>',
+    motor: '<path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/>',
+    far: '<path d="M10 6c-4 0-6 3-6 6s2 6 6 6c2 0 3-1 3-6s-1-6-3-6z"/><path d="M16 8h5M16 12h6M16 16h5"/>',
+    emniyet: '<path d="M6 3l12 18"/><circle cx="12" cy="12" r="2.5"/><path d="M4 12h5M15 12h5"/>',
 };
 
 // ================= Renk geçişi =================
@@ -52,7 +57,17 @@ const EHUD_PALET = {
 };
 
 // ================= Konum / ölçek ayarları =================
-const EHUD_VARSAYILAN = { konum: 'sol-alt', olcek: 1, x: 0, y: 0, sayi: false, parlama: true };
+const EHUD_VARSAYILAN = {
+    konum: 'sol-alt', olcek: 1, x: 0, y: 0, sayi: false, parlama: true,
+    aracKonum: 'sag-alt', aracOlcek: 1,   // araç HUD'u
+};
+
+// Araç HUD'u renkleri
+const EHUD_PALET_ARAC = {
+    devir:  [[0, '#3dc8ff'], [70, '#3dc8ff'], [85, '#ffb547'], [100, '#ff3b5c']],
+    yakit:  [[0, '#ff3b5c'], [20, '#ff7a3d'], [50, '#ffd23d'], [100, '#c6ff4d']],
+    motor:  [[0, '#ff3b5c'], [35, '#ff9f3d'], [70, '#3ef08a'], [100, '#3ef08a']],
+};
 
 const hudDuzen = Vue.reactive((() => {
     try {

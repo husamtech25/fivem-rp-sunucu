@@ -1016,7 +1016,45 @@ const vehHud = {
       showSquare: false,
       showCircle: false,
       seatbeltColor: "",
+      // [Huso] Endcore araç HUD'u: Lua'dan gelen gerçek değerler
+      kmh: 0,
+      rpm: 0,
+      gear: 1,
+      engineOn: false,
+      lights: 0,
+      engineHealth: 100,
+      vehClass: 0,
+      yakit: 0,
+      duzen: hudDuzen,
+      ikon: EHUD_IKONLAR,
     };
+  },
+  computed: {
+    // [Huso] Endcore araç HUD'u
+    hizSifir() { return '0'.repeat(Math.max(0, 3 - this.hizRakam.length)); },   // 087 gibi: baştaki sıfırlar soluk
+    hizRakam() { return this.kmh > 0 ? String(this.kmh) : ''; },
+    devirYuzde() { return this.engineOn ? Math.max(0, Math.min(100, this.rpm * 100)) : 0; },
+    devirRenk() { return ehudRenk(this.devirYuzde, EHUD_PALET_ARAC.devir); },
+    hava() { return this.vehClass === 15 || this.vehClass === 16; },   // helikopter / uçak: vites yerine irtifa
+    vitesHarf() {
+      if (!this.engineOn) return 'P';
+      if (this.gear === 0) return 'R';
+      if (this.kmh < 1) return 'N';
+      return 'D';
+    },
+    vitesNo() { return this.vitesHarf === 'D' && this.gear > 0 ? this.gear : null; },
+    vitesRenk() { return { P: '#9aa4b8', R: '#ff4d6d', N: '#ffd23d', D: '#3dc8ff' }[this.vitesHarf]; },
+    kemerVar() {
+      // motosiklet (8), bisiklet (13), tekne (14), helikopter (15), uçak (16), tren (21): kemer yok
+      return this.showSeatbelt !== false && ![8, 13, 14, 15, 16, 21].includes(this.vehClass);
+    },
+    yakitRenk() { return ehudRenk(this.yakit, EHUD_PALET_ARAC.yakit); },
+    motorSagligi() { return this.engineHealth; },
+    motorRenk() { return ehudRenk(this.engineHealth, EHUD_PALET_ARAC.motor); },
+    aracStil() {
+      const orta = this.duzen.aracKonum === 'alt-orta';
+      return { transform: `${orta ? 'translateX(-50%) ' : ''}scale(${this.duzen.aracOlcek})` };
+    },
   },
   
   destroyed() {
@@ -1033,6 +1071,15 @@ const vehHud = {
     vehicleHud(data) {
       this.show = data.show;
       this.speed = data.speed;
+      // [Huso] Endcore araç HUD'u
+      this.kmh = Number(data.kmh) || 0;
+      this.rpm = Number(data.rpm) || 0;
+      this.gear = Number(data.gear ?? 1);
+      this.engineOn = data.engineOn === true || data.engineOn === 1;
+      this.lights = Number(data.lights) || 0;
+      this.engineHealth = data.engineHealth === undefined ? this.engineHealth : Number(data.engineHealth);
+      this.vehClass = Number(data.vehClass) || 0;
+      this.yakit = Math.max(0, Math.min(100, Number(data.fuel) || 0));
       this.altitude = data.altitude;
       this.fuel = (data.fuel * 0.71);
       this.showSeatbelt = data.showSeatbelt;
@@ -1081,6 +1128,7 @@ const vehHud = {
 };
 const app3 = Vue.createApp(vehHud);
 app3.use(Quasar);
+app3.component('e-gosterge', EGosterge); // [Huso]
 app3.mount("#veh-container");
 
 // COMPASS HUD

@@ -99,3 +99,104 @@
 .ehud-gecis-enter-from, .ehud-gecis-leave-to { opacity: 0; transform: scale(.6); }
 .ehud-gecis-move { transition: transform .3s ease; }
 .ehud-gecis-leave-active { position: absolute; }
+
+/* =====================================================================
+   [Huso] Endcore araç HUD'u – karakter HUD'uyla aynı görsel dil
+   ===================================================================== */
+.ahud {
+    position: absolute;
+    right: 2.6vh;
+    bottom: 2.2vh;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+    transform-origin: right bottom;
+    transition: transform .35s ease, opacity .35s ease;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    z-index: 1;
+}
+.ahud.ahud-alt-orta { right: auto; left: 50%; bottom: 7.5vh; transform-origin: center bottom; }
+
+/* ---------- Kadran (hız + devir) ---------- */
+.ahud-kadran {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 38%, rgba(28, 32, 44, .74), rgba(8, 10, 16, .82));
+    box-shadow: 0 4px 18px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(255, 255, 255, .05);
+    transition: opacity .4s ease;
+}
+.ahud-kadran.kapali { opacity: .6; }
+.ahud-kadran svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.ahud-kadran path { fill: none; stroke-linecap: round; }
+.ahud-iz { stroke: rgba(255, 255, 255, .08); stroke-width: 6; }
+.ahud-kirmizi { stroke: rgba(255, 59, 92, .35); stroke-width: 6; stroke-dasharray: 15 100; stroke-dashoffset: -85; stroke-linecap: butt !important; }
+.ahud-cizgi { stroke: rgba(255, 255, 255, .22); stroke-width: 4; stroke-dasharray: .7 9.3; stroke-linecap: butt !important; }
+.ahud-devir {
+    stroke: var(--devir, #3dc8ff);
+    stroke-width: 6;
+    stroke-dasharray: 100;
+    transition: stroke-dashoffset .14s linear, stroke .3s ease;
+}
+.eg-parlak-arac .ahud-devir { filter: drop-shadow(0 0 4px var(--devir, #3dc8ff)); }
+.ahud-devir.sinirda { animation: ahud-sinir .25s ease-in-out infinite alternate; }
+@keyframes ahud-sinir { to { opacity: .55; } }
+
+.ahud-merkez {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 6px;
+}
+.ahud-hiz {
+    font-size: 44px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+    color: #f2f5fb;
+    text-shadow: 0 0 10px rgba(61, 200, 255, .25);
+}
+.ahud-hiz .sifir { color: rgba(255, 255, 255, .16); text-shadow: none; }
+.ahud-birim { margin-top: 2px; font-size: 10px; font-weight: 700; letter-spacing: .18em; color: rgba(205, 214, 230, .6); }
+.ahud-vites {
+    margin-top: 8px;
+    min-width: 34px;
+    padding: 2px 9px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid currentColor;   /* (FiveM tarayıcısı eski: color-mix yok) */
+    color: var(--vites, #3dc8ff);
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+    transition: color .25s ease, border-color .25s ease;
+}
+.ahud-vites sup { font-size: 10px; margin-left: 1px; }
+
+/* ---------- Sağ sütun ---------- */
+.ahud-yan { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.ahud-durum { display: flex; gap: 6px; }
+.ahud-isik {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(10, 12, 18, .72);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .05);
+    color: rgba(205, 214, 230, .32);
+    transition: color .3s ease, box-shadow .3s ease;
+}
+.ahud-isik svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ahud-isik.acik { color: var(--isik, #3ef08a); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .05), 0 0 8px -2px var(--isik, #3ef08a); }
+.ahud-isik.uyari { color: #ff3b5c; animation: eg-nabiz 1.1s ease-in-out infinite; }
+
+/* Giriş / çıkış */
+.ahud-gecis-enter-active, .ahud-gecis-leave-active { transition: opacity .35s ease, transform .35s ease; }
+.ahud-gecis-enter-from, .ahud-gecis-leave-to { opacity: 0; }

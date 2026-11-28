@@ -47,7 +47,8 @@ NPC'ler `npcler.json` dosyasında saklanır; `/npcsil` en yakın NPC'yi siler.
 | `ox_inventory/data/items.lua` | `polis_tablet` eşyası (kullanınca `polistablet` açılır) | Polis tableti |
 | `qbx_police/config/shared.lua` | MRPD mesai noktası kapatıldı | Yerine mesai NPC'si |
 | `qbx_hud/html/ehud.js`, `ehud.css` (yeni), `index.html`, `app.js` | Oyuncu göstergeleri yeniden tasarlandı: ince yuvarlak neon halkalar, aynı stilde SVG ikonlar, değere göre renk geçişi, kritikte yanıp sönme; I menüsünde konum / ölçek / yüzde / parlama ayarı | Modern HUD. Gösterge mantığı (hudTick, dinamik gösterme ayarları) aynen duruyor |
-| `qbx_hud/client/main.lua` | `hudtick` mesajına `inWater` eklendi | Karada Dayanıklılık, suda Oksijen gösterilsin |
+| `qbx_hud/client/main.lua` | `hudtick` mesajına `inWater`; `car` mesajına `kmh`, `rpm`, `gear`, `engineOn`, `lights`, `engineHealth`, `vehClass` eklendi (`endAracVerisi`) | Karada Dayanıklılık, suda Oksijen; yeni araç HUD'u gerçek verilerle çalışsın. `useMPH` ve stres hız eşikleri değişmedi |
+| `qbx_hud/html` (araç HUD'u) | Eski hız / yakıt / irtifa / kemer göstergeleri yerine: büyük dijital KM/H, devir yayı (kırmızı bölge), vites (P/R/N/D+vites), yakıt ve motor sağlığı halkaları, motor / far / kemer ışıkları; helikopter-uçakta irtifa. I menüsünde konum ve ölçek | Karakter HUD'uyla aynı tasarım |
 | `qbx_management`, `qbx_cityhall`, `qbx_ambulancejob`, `qbx_mechanicjob` `config/client.lua` | `useTarget = true` | E yazıları yerine Sol Alt, NPC'lerle çakışmasın |
 | `qbx_core/config/shared.lua` | `serverName = 'Endcore RP'` | Sunucu adı |
 | `illenium-appearance/shared/config.lua` | `UseTarget = true`, `EnablePedsForShops = false` | Satıcıları `/npckoy` ile kasaya koyuyoruz |
