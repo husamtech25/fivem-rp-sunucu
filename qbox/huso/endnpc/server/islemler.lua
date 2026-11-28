@@ -109,6 +109,14 @@ local function npcHazirla(veri, eski)
     n.rotaTur = Secenek(veri.rotaTur, Ayar.Secenekler.rotaTur, temel.rotaTur or 'dongu')
     n.rotaBekleme = math.floor(Sayi(veri.rotaBekleme, 'rotaBekleme', temel.rotaBekleme or 3))
 
+    -- Hücum hedefi (etkinlikte saldırılacak nokta). Yoksa hücum NPC'si doğduğu yeri hedef alır.
+    if type(veri.hedef) == 'table' and tonumber(veri.hedef.x) and tonumber(veri.hedef.y) and tonumber(veri.hedef.z) then
+        n.hedef = { x = tonumber(veri.hedef.x), y = tonumber(veri.hedef.y), z = tonumber(veri.hedef.z) }
+    else
+        n.hedef = temel.hedef
+    end
+    n.gecici = temel.gecici   -- etkinlik NPC'si işareti (panelden değiştirilemez)
+
     return n
 end
 
@@ -145,6 +153,9 @@ local function npcUygula(n, eski)
     end
     return true, id
 end
+
+-- Etkinlik dosyası da kullanır
+NpcHazirla, NpcUygula = npcHazirla, npcUygula
 
 local function idListesi(veri)
     local liste = {}
@@ -237,7 +248,34 @@ end
 
 -- ================= Gruplar =================
 
-local SAYI_ALANLARI = { 'gorusMesafesi', 'saldiriMesafesi', 'ofke', 'saldiriSikligi', 'isabet', 'takipMesafesi', 'dusukCanEsigi' }
+local SAYI_ALANLARI = { 'gorusMesafesi', 'saldiriMesafesi', 'ofke', 'saldiriSikligi', 'isabet', 'takipMesafesi', 'dusukCanEsigi',
+    'ganimetParaMin', 'ganimetParaMax' }
+
+local function evetHayir(deger, varsayilan)
+    if deger == nil then return varsayilan == true end
+    return deger == true
+end
+
+-- Ganimet eşya listesi: sadece envanterde gerçekten olan eşyalar kabul edilir
+local function ganimetListesi(liste)
+    local sonuc = {}
+    if type(liste) ~= 'table' then return sonuc end
+    for _, e in ipairs(liste) do
+        if #sonuc >= 15 then break end
+        local ad = type(e) == 'table' and type(e.item) == 'string' and e.item:lower() or nil
+        if ad and ad:match('^[%w_]+$') and exports.ox_inventory:Items(ad) then
+            local en = math.floor(Sayi(e.min, 'ganimetAdet', 1))
+            local ec = math.floor(Sayi(e.max, 'ganimetAdet', en))
+            sonuc[#sonuc + 1] = {
+                item = ad,
+                min = math.min(en, ec),
+                max = math.max(en, ec),
+                sans = math.floor(Sayi(e.sans, 'ganimetSans', 100)),
+            }
+        end
+    end
+    return sonuc
+end
 
 local function grupHazirla(veri, eski)
     local temel = eski or Ayar.VarsayilanGrup
@@ -248,7 +286,15 @@ local function grupHazirla(veri, eski)
     g.hareket = Secenek(veri.hareket, Ayar.Secenekler.hareket, temel.hareket)
     g.dusukCanDavranisi = Secenek(veri.dusukCanDavranisi, Ayar.Secenekler.dusukCanDavranisi, temel.dusukCanDavranisi)
     for _, alan in ipairs(SAYI_ALANLARI) do
-        g[alan] = math.floor(Sayi(veri[alan], alan, temel[alan]))
+        g[alan] = math.floor(Sayi(veri[alan], alan, temel[alan] or 0))
+    end
+    if g.ganimetParaMin > g.ganimetParaMax then g.ganimetParaMin, g.ganimetParaMax = g.ganimetParaMax, g.ganimetParaMin end
+    g.ihbar = evetHayir(veri.ihbar, temel.ihbar)
+    g.ganimetSilah = evetHayir(veri.ganimetSilah, temel.ganimetSilah)
+    if veri.ganimetEsyalar ~= nil then
+        g.ganimetEsyalar = ganimetListesi(veri.ganimetEsyalar)
+    else
+        g.ganimetEsyalar = temel.ganimetEsyalar or {}
     end
     return g
 end
@@ -490,6 +536,101 @@ function Islemler.ayarKaydet(_, veri)
     return true
 end
 
+-- ================= Kiralık koruma ayarları =================
+
+function Islemler.korumaKaydet(_, veri)
+    local k = Veri.ayarlar.koruma
+    k.fiyat = math.floor(Sayi(veri.fiyat, 'fiyat', k.fiyat))
+    k.sure = math.floor(Sayi(veri.sure, 'sure', k.sure))
+    k.enFazla = math.floor(Sayi(veri.enFazla, 'enFazla', k.enFazla))
+    k.can = math.floor(Sayi(veri.can, 'can', k.can))
+    k.zirh = math.floor(Sayi(veri.zirh, 'zirh', k.zirh))
+    if SilahGecerli(veri.silah) then k.silah = veri.silah end
+    if type(veri.model) == 'string' and veri.model:match('^[%w_]+$') and #veri.model <= 40 then k.model = veri.model:lower() end
+    if veri.x ~= nil then
+        local x, y, z = tonumber(veri.x), tonumber(veri.y), tonumber(veri.z)
+        if not (x and y and z) then return false, 'Ajans konumu geçersiz.' end
+        k.ajans = { x = x, y = y, z = z, h = (tonumber(veri.h) or 0.0) % 360 }
+    end
+    k.aktif = veri.aktif == true
+    if k.aktif and not k.ajans then
+        k.aktif = false
+        return false, 'Önce ajansın konumunu seç.'
+    end
+    Kaydet()
+    SenkGonder()
+    return true
+end
+
+-- ================= Dalga etkinlikleri =================
+
+local ETKINLIK_SAYILARI = { 'dalgaSayisi', 'ilkDalga', 'artis', 'dalgaArasi', 'sureDk' }
+
+function Islemler.etkinlikKaydet(_, veri)
+    local eski
+    if veri.id ~= nil then
+        eski = Veri.etkinlikler[veri.id]
+        if not eski then return false, 'Etkinlik bulunamadı.' end
+        if EtkinlikAktifMi(veri.id) then return false, 'Etkinlik sürerken düzenlenemez, önce durdur.' end
+    end
+    local temel = eski or Ayar.VarsayilanEtkinlik
+    local e = { id = eski and eski.id }
+    e.ad = Metin(veri.ad, 32, temel.ad)
+    local grupId = veri.grup ~= nil and veri.grup or temel.grup
+    if type(grupId) ~= 'string' or not Veri.gruplar[grupId] then return false, 'Saldıracak grubu seç.' end
+    e.grup = grupId
+    local sablon = veri.sablon ~= nil and veri.sablon or temel.sablon
+    if type(sablon) ~= 'string' or not Veri.sablonlar[sablon] then return false, 'Düşmanların şablonunu seç.' end
+    e.sablon = sablon
+    for _, alan in ipairs(ETKINLIK_SAYILARI) do
+        e[alan] = math.floor(Sayi(veri[alan], alan, temel[alan]))
+    end
+    e.duyuru = evetHayir(veri.duyuru, temel.duyuru)
+
+    if veri.x ~= nil then
+        local x, y, z = tonumber(veri.x), tonumber(veri.y), tonumber(veri.z)
+        if not (x and y and z) then return false, 'Merkez konumu geçersiz.' end
+        e.x, e.y, e.z = x, y, z
+    elseif eski then
+        e.x, e.y, e.z = eski.x, eski.y, eski.z
+    else
+        return false, 'Savunulacak merkezi seç.'
+    end
+
+    local dogma = {}
+    local kaynak = veri.dogma ~= nil and veri.dogma or (eski and eski.dogma) or {}
+    if type(kaynak) == 'table' then
+        for i, p in ipairs(kaynak) do
+            if i > Ayar.RotaEnFazla then break end
+            local x, y, z = tonumber(type(p) == 'table' and p.x), tonumber(type(p) == 'table' and p.y), tonumber(type(p) == 'table' and p.z)
+            if x and y and z then dogma[#dogma + 1] = { x = x, y = y, z = z } end
+        end
+    end
+    if #dogma == 0 then return false, 'Düşmanların doğacağı en az bir nokta ekle.' end
+    e.dogma = dogma
+
+    e.id = e.id or YeniId('e')
+    Veri.etkinlikler[e.id] = e
+    Kaydet()
+    return true, e.id
+end
+
+function Islemler.etkinlikSil(_, veri)
+    if not Veri.etkinlikler[veri.id] then return false, 'Etkinlik bulunamadı.' end
+    if EtkinlikAktifMi(veri.id) then return false, 'Etkinlik sürerken silinemez, önce durdur.' end
+    Veri.etkinlikler[veri.id] = nil
+    Kaydet()
+    return true
+end
+
+function Islemler.etkinlikBaslat(_, veri)
+    return EtkinlikBaslat(veri.id)
+end
+
+function Islemler.etkinlikDurdur()
+    return EtkinlikBitir('durduruldu')
+end
+
 -- ================= Panel verisi =================
 
 local function durumBilgisi(id, n)
@@ -529,6 +670,10 @@ function Islemler.getir()
         npcler = npcler,
         sablonlar = Veri.sablonlar,
         bolgeler = Veri.bolgeler,
+        etkinlikler = Veri.etkinlikler,
+        aktifEtkinlik = EtkinlikDurumu(),
+        koruma = Veri.ayarlar.koruma,
+        kiralananKoruma = KorumaSayisi(),
         aktif = AktifSayisi(),
         grupSayisi = grupSayisi(),
     }

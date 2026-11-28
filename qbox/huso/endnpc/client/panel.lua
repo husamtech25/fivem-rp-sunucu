@@ -5,6 +5,19 @@
 local acik = false
 local Gorsel = { blip = false, etiket = false, bolge = false }   -- sadece bu oyuncunun ekranı için
 
+-- Ganimet seçimi için envanterdeki bütün eşyalar (ad + Türkçe/İngilizce etiket)
+local function esyaListesi()
+    local liste = {}
+    local tamam, esyalar = pcall(function() return exports.ox_inventory:Items() end)
+    if tamam and type(esyalar) == 'table' then
+        for ad, e in pairs(esyalar) do
+            liste[#liste + 1] = { ad = ad, etiket = e.label or ad }
+        end
+        table.sort(liste, function(a, b) return a.etiket < b.etiket end)
+    end
+    return liste
+end
+
 local function paneliAc()
     if acik then return end
     acik = true
@@ -24,6 +37,8 @@ local function paneliAc()
             varsayilanBolge = Ayar.VarsayilanBolge,
             araclar = Ayar.Araclar,
             rotaEnFazla = Ayar.RotaEnFazla,
+            varsayilanEtkinlik = Ayar.VarsayilanEtkinlik,
+            esyalar = esyaListesi(),
         },
     })
 end

@@ -21,6 +21,7 @@
             <button data-sekme="iliski">İlişkiler</button>
             <button data-sekme="sablon">Şablonlar</button>
             <button data-sekme="bolge">Bölgeler</button>
+            <button data-sekme="etkinlik">Etkinlik</button>
             <button data-sekme="ayar">Ayarlar</button>
         </nav>
         <div class="istatistik" id="istatistik"></div>
@@ -115,6 +116,17 @@
         <div class="kartlar" id="bolgeListe"></div>
     </section>
 
+    <!-- ============ Etkinlik ============ -->
+    <section class="sekme gizli" id="sekme-etkinlik">
+        <div class="arac">
+            <span class="aciklama">Dalga etkinliği: düşmanlar dalga dalga gelip merkeze hücum eder. Oyuncular bütün dalgaları
+                püskürtürse kazanır. Aynı anda tek etkinlik çalışır.</span>
+            <span class="bosluk"></span>
+            <button class="birincil" id="yeniEtkinlikBtn">+ Yeni etkinlik</button>
+        </div>
+        <div class="kartlar" id="etkinlikListe"></div>
+    </section>
+
     <!-- ============ Ayarlar ============ -->
     <section class="sekme gizli" id="sekme-ayar">
         <div class="ayar-izgara">
@@ -122,6 +134,11 @@
                 <h3>Genel</h3>
                 <div class="form" id="ayarForm"></div>
                 <div class="alt-sag"><button class="birincil" id="ayarKaydetBtn">Kaydet</button></div>
+                <h3>Kiralık koruma</h3>
+                <p class="aciklama">Oyuncular ajanstaki NPC'ye Sol Alt ile bakıp para karşılığı koruma tutar.
+                    Korumalar peşlerinden gelir, arabalarına biner, onları korur. <span id="korumaSayisi"></span></p>
+                <div class="form" id="korumaForm"></div>
+                <div class="alt-sag"><button class="birincil" id="korumaKaydetBtn">Korumayı kaydet</button></div>
             </div>
             <div class="kutu">
                 <h3>Görünüm (sadece senin ekranın)</h3>
@@ -171,6 +188,7 @@
 </div>
 
 <div id="bildirimler" class="bildirimler"></div>
+<datalist id="esyaListe"></datalist>
 
 <script src="app.js"></script>
 </body>

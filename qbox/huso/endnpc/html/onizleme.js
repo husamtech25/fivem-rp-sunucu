@@ -8,7 +8,7 @@
         renkler: [{ hex: '#e74c3c', ad: 'Kırmızı' }, { hex: '#ff7a1a', ad: 'Turuncu' }, { hex: '#2ecc71', ad: 'Yeşil' }, { hex: '#3466e0', ad: 'Mavi' }, { hex: '#9b59b6', ad: 'Mor' }],
         secenekler: {
             iliski: ['dost', 'tarafsiz', 'dusman'], hareket: ['saldirgan', 'savunmaci', 'sabit'],
-            davranis: ['nobetci', 'devriye', 'rota', 'saldirgan', 'sabit', 'pasif'], rotaTur: ['dongu', 'gidipGel'], dusukCanDavranisi: ['devam', 'siper', 'kac', 'cildir'],
+            davranis: ['nobetci', 'devriye', 'rota', 'saldirgan', 'hucum', 'sabit', 'pasif'], rotaTur: ['dongu', 'gidipGel'], dusukCanDavranisi: ['devam', 'siper', 'kac', 'cildir'],
             olumDavranisi: ['sil', 'yenidenDog', 'bekle'],
         },
         etiketler: {
@@ -19,9 +19,9 @@
             rotaTur: { dongu: 'Döngü', gidipGel: 'Gidip gel' }, olumDavranisi: { sil: 'Kaydı sil', yenidenDog: 'Yeniden doğsun', bekle: 'Kapalı beklesin' },
         },
         sinirlar: { can: [1, 1000], zirh: [0, 100], ofke: [0, 100], gorusMesafesi: [5, 300], saldiriMesafesi: [2, 200], saldiriSikligi: [0, 100],
-            isabet: [0, 100], takipMesafesi: [5, 500], dusukCanEsigi: [0, 100], maxNpc: [1, 150], aiAralik: [200, 3000], cesetSuresi: [0, 600], yenidenDogmaSuresi: [5, 3600], yaricap: [5, 300], alarmSuresi: [0, 600], rotaBekleme: [0, 300] },
+            isabet: [0, 100], takipMesafesi: [5, 500], dusukCanEsigi: [0, 100], maxNpc: [1, 150], aiAralik: [200, 3000], cesetSuresi: [0, 600], yenidenDogmaSuresi: [5, 3600], yaricap: [5, 300], alarmSuresi: [0, 600], rotaBekleme: [0, 300], ganimetParaMin: [0, 100000], ganimetParaMax: [0, 100000], fiyat: [0, 1000000], sure: [1, 180], enFazla: [1, 6], dalgaSayisi: [1, 20], ilkDalga: [1, 30], artis: [0, 10], dalgaArasi: [5, 300], sureDk: [1, 120] },
         varsayilanNpc: { ad: 'NPC', model: 'g_m_y_mexgoon_01', can: 200, zirh: 0, silah: 'WEAPON_PISTOL', davranis: 'nobetci', aktif: true },
-        araclar: [{ ad: 'police', etiket: 'Polis aracı' }, { ad: 'daemon', etiket: 'Daemon (motor)' }], rotaEnFazla: 20, varsayilanBolge: { ad: 'Yeni bölge', yaricap: 40, oyuncuAlarm: false, alarmSuresi: 30, aktif: true },
+        araclar: [{ ad: 'police', etiket: 'Polis aracı' }, { ad: 'daemon', etiket: 'Daemon (motor)' }], rotaEnFazla: 20, esyalar: [{ ad: 'bandage', etiket: 'Bandage' }, { ad: 'lockpick', etiket: 'Lockpick' }], varsayilanEtkinlik: { ad: 'Yeni etkinlik', dalgaSayisi: 3, ilkDalga: 4, artis: 2, dalgaArasi: 20, sureDk: 15, duyuru: true }, varsayilanBolge: { ad: 'Yeni bölge', yaricap: 40, oyuncuAlarm: false, alarmSuresi: 30, aktif: true },
         varsayilanGrup: { ad: 'Yeni grup', renk: '#ff7a1a', oyuncuIliskisi: 'tarafsiz', gorusMesafesi: 60, saldiriMesafesi: 40, ofke: 50,
             saldiriSikligi: 50, isabet: 40, hareket: 'saldirgan', takipMesafesi: 80, dusukCanEsigi: 25, dusukCanDavranisi: 'siper' },
     };
@@ -32,6 +32,10 @@
         gruplar: { g1: g('g1', 'Güvenlik', '#3466e0', { hareket: 'savunmaci' }), g2: g('g2', 'Çete', '#e74c3c', { ofke: 70, oyuncuIliskisi: 'dusman' }) },
         iliskiler: { 'g1|g2': 'dusman' },
         sablonlar: { s1: { id: 's1', ad: 'Çete baskını', aciklama: '5 kişilik çete', uyeler: [{ ad: 'Elebaşı', model: 'g_m_y_mexgoon_01', silah: 'WEAPON_PISTOL' }, { ad: 'Tetikçi', model: 'g_m_y_mexgoon_01', silah: 'WEAPON_PISTOL', arac: 'daemon' }] } },
+        koruma: { aktif: true, fiyat: 500, sure: 15, enFazla: 2, model: 's_m_y_swat_01', silah: 'WEAPON_PISTOL', can: 200, zirh: 50, ajansModel: 's_m_y_swat_01', ajans: { x: 1, y: 2, z: 3, h: 0 } },
+        kiralananKoruma: 1,
+        etkinlikler: { e1: { id: 'e1', ad: 'Liman baskını', grup: 'g2', sablon: 's1', dalgaSayisi: 3, ilkDalga: 4, artis: 2, dalgaArasi: 20, sureDk: 15, duyuru: true, x: 1, y: 2, z: 3, dogma: [{ x: 5, y: 5, z: 3 }] } },
+        aktifEtkinlik: { id: 'e1', dalga: 2, dalgaSayisi: 3, kalanDusman: 5, oldurulen: 4, kalanSure: 610, sonrakiDalga: null },
         bolgeler: { b1: { id: 'b1', ad: 'Liman', grup: 'g2', x: 441, y: -982, z: 30, yaricap: 40, alarmSuresi: 30, oyuncuAlarm: true, aktif: true } },
         npcler: {
             n3: { id: 'n3', ad: 'Nöbetçi 1', grup: 'g1', model: 's_m_y_marine_01', can: 200, zirh: 50, silah: 'WEAPON_CARBINERIFLE', davranis: 'nobetci', aktif: true, x: 441.2, y: -981.9, z: 29.7, h: 90, durumBilgi: { durum: 'canli', can: 140 } },
@@ -70,6 +74,11 @@
         sablonYerlestir: (v) => { veri.sablonlar[v.id].uyeler.forEach((u, i) => islemler.npcKaydet({ ...u, grup: v.grup, ad: (v.onEk ? v.onEk + ' ' : '') + u.ad, x: v.x + i * 2, y: v.y, z: v.z, h: v.h, aktif: true })); return veri.sablonlar[v.id].uyeler.length; },
         bolgeKaydet: (v) => { const id = v.id || 'b' + (++sonId); veri.bolgeler[id] = { ...(veri.bolgeler[id] || {}), ...v, id }; return id; },
         bolgeSil: ({ id }) => { delete veri.bolgeler[id]; return true; },
+        korumaKaydet: (v) => { Object.assign(veri.koruma, v); return true; },
+        etkinlikKaydet: (v) => { const id = v.id || 'e' + (++sonId); veri.etkinlikler[id] = { ...(veri.etkinlikler[id] || {}), ...v, id }; return id; },
+        etkinlikSil: ({ id }) => { delete veri.etkinlikler[id]; return true; },
+        etkinlikBaslat: ({ id }) => { veri.aktifEtkinlik = { id, dalga: 0, dalgaSayisi: veri.etkinlikler[id].dalgaSayisi, kalanDusman: 0, oldurulen: 0, kalanSure: 900, sonrakiDalga: 10 }; return true; },
+        etkinlikDurdur: () => { veri.aktifEtkinlik = null; return true; },
         ayarKaydet: (v) => { Object.assign(veri.ayarlar, v); return true; },
     };
     window.onizlemeNui = async (ad, v) => {

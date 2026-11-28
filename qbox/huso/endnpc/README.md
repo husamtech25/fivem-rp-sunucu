@@ -22,6 +22,17 @@ ilişkileri (dost / tarafsız / düşman) belirle. Düşman gruplar birbirini g�
   Döngü veya gidip-gel, her noktada bekleme süresi. İsim etiketleri açıkken rota yerde yeşil çizgiyle görünür.
 - **Araç**: NPC'ye araç seç (araba veya motor). Aracıyla doğar; devriye/avcı araçla gezer, rota araçla sürülür,
   düşmanı araçla kovalar, savaşmak için iner, savaş bitince geri biner. Araç kilitli doğar.
+- **Ganimet** (grup ayarı): ölen NPC'nin üstünden nakit, eşyalar (ihtimalli) ve istenirse silahı çıkar.
+  Oyuncu cesede Sol Alt ile bakıp *Üstünü ara* der (4 sn). Eşyayı sunucu verir, iki kişi aynı cesedi soyamaz.
+- **Polise ihbar** (grup ayarı): grubun NPC'si çatışınca görevdeki polislere qbx_police'in ihbarı gider
+  ("Silah sesleri ihbarı", harita işareti, ses). Aynı 150 m içinden en fazla 90 sn'de bir.
+- **Kiralık koruma** (Ayarlar sekmesi): ajans konumu, fiyat, süre, en fazla kaç koruma, model, silah, can, zırh.
+  Oyuncu ajanstaki NPC'ye Sol Alt → *Koruma kirala*. Para önce nakitten, yetmezse bankadan. Korumalar GTA'nın
+  grup üyesi sistemiyle peşinden gelir, arabaya biner, sahibini korur. Süre dolunca silinir; korumaya Sol Alt → *Korumaları gönder*.
+- **Etkinlik** sekmesi (dalga etkinliği): saldıran grup, düşman tipleri (şablon), dalga sayısı, ilk dalga, artış,
+  dalgalar arası bekleme, en fazla süre, savunulacak merkez ve doğma noktaları. Düşmanlar "Hücum" davranışıyla
+  merkeze koşar. Herkese ekranın üstünde duyuru ve haritada kırmızı işaret. Bütün dalgalar temizlenince kazanılır.
+  Etkinlik NPC'leri dosyaya yazılmaz; durdurulunca / bitince silinir.
 - **Ayarlar**: NPC limiti, yapay zeka aralığı, ceset süresi, ölünce ne olacağı (sil / yeniden doğ / kapalı beklesin),
   yeniden doğma süresi. Kendi ekranın için harita işaretleri ve isim etiketleri.
 

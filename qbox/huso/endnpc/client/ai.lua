@@ -9,7 +9,7 @@
 --   2) Bizim kontrolümüz: görüş / saldırı mesafesi, evden fazla uzaklaşınca geri dönme,
 --      canı azalınca davranış değiştirme, devriye rotası, araç sürme, bölge alarmı, ölüm bildirimi.
 
-Senk = { surum = -1, gruplar = {}, iliskiler = {}, ayarlar = {}, npcler = {}, bolgeler = {} }
+Senk = { surum = -1, gruplar = {}, iliskiler = {}, ayarlar = {}, npcler = {}, bolgeler = {}, etkinlik = nil }
 
 local OYUNCU_GRUBU = GetHashKey('PLAYER')
 local ILISKI_DEGERI = { dost = 1, tarafsiz = 3, dusman = 5 }  -- GTA: 0 arkadaş, 1 saygı, 3 tarafsız, 5 nefret
@@ -67,8 +67,10 @@ RegisterNetEvent('endnpc:senk', function(paket)
     Senk.ayarlar = paket.ayarlar or {}
     Senk.npcler = paket.npcler or {}
     Senk.bolgeler = paket.bolgeler or {}
+    Senk.etkinlik = paket.etkinlik
     Senk.surum = paket.surum or 0
     iliskileriKur()
+    TriggerEvent('endnpc:senkGeldi')   -- koruma ajansı ve etkinlik işareti güncellensin
 end)
 
 CreateThread(function()
@@ -351,6 +353,8 @@ local function bostaGorevi(ped, n, g, d, ev, evMesafe, arac, aractami)
         if n.davranis == 'devriye' or n.davranis == 'saldirgan' then anahtar = 'arac_gez'
         elseif evMesafe > 15.0 then anahtar = 'arac_git'
         else anahtar = 'arac_dur' end
+    elseif n.davranis == 'hucum' then
+        anahtar = evMesafe > 12.0 and 'hucum_kos' or 'hucum_dur'
     else
         anahtar = n.davranis
         if n.davranis == 'nobetci' or n.davranis == 'sabit' or n.davranis == 'pasif' or n.davranis == 'rota' then
@@ -361,7 +365,17 @@ local function bostaGorevi(ped, n, g, d, ev, evMesafe, arac, aractami)
     if d.bosta == anahtar and simdi < d.bostaYenile then return end
     d.bosta, d.bostaYenile = anahtar, simdi + 15000
 
-    if anahtar == 'arac_gez' then
+    if anahtar == 'hucum_kos' then
+        -- hedefe koşarak git (yolda düşman görürse saldırı kısmı devreye girer)
+        if aractami then
+            TaskVehicleDriveToCoordLongrange(ped, arac, ev.x, ev.y, ev.z, 22.0, SURUS_STILI, 10.0)
+        else
+            TaskGoToCoordAnyMeans(ped, ev.x, ev.y, ev.z + 1.0, 2.0, 0, false, 786603, 0xbf800000)
+        end
+        d.bostaYenile = simdi + 6000
+    elseif anahtar == 'hucum_dur' then
+        TaskWanderInArea(ped, ev.x, ev.y, ev.z, 15.0, 1.0, 2.0)
+    elseif anahtar == 'arac_gez' then
         TaskVehicleDriveWander(ped, arac, n.davranis == 'saldirgan' and 18.0 or 12.0, SURUS_STILI)
     elseif anahtar == 'arac_git' then
         TaskVehicleDriveToCoordLongrange(ped, arac, ev.x, ev.y, ev.z, 14.0, SURUS_STILI, 8.0)
@@ -475,10 +489,18 @@ local function dusun(ben, liste, tarama)
         d.rotaIdx = d.rotaIdx or enYakinNokta(rota, konum)
         local p = rota[d.rotaIdx]
         ev = vector3(p.x, p.y, p.z)
+    elseif n.davranis == 'hucum' and n.hedef then
+        ev = vector3(n.hedef.x, n.hedef.y, n.hedef.z)   -- hücum edenin "evi" saldırdığı nokta
     else
         ev = vector3(n.ev.x, n.ev.y, n.ev.z)
     end
     local evMesafe = #(konum - ev)
+
+    -- Polise ihbar: bu grup çatışınca (en fazla 30 saniyede bir; sunucu ayrıca bölgeye göre süzer)
+    if g.ihbar and GetGameTimer() > (d.ihbarZamani or 0) and (IsPedInCombat(ped, 0) or IsPedShooting(ped)) then
+        d.ihbarZamani = GetGameTimer() + 30000
+        TriggerServerEvent('endnpc:catisma', n.netId)
+    end
 
     -- Can eşiğin altına indi mi?
     if not d.dusukCan and g.dusukCanEsigi > 0 then
@@ -504,6 +526,7 @@ local function dusun(ben, liste, tarama)
     local sinir = g.takipMesafesi * (n.davranis == 'saldirgan' and 2 or 1)
     if aractami and (n.davranis == 'devriye' or n.davranis == 'saldirgan') then sinir = sinir * 4 end
     if rota then sinir = sinir + 30.0 end
+    if n.davranis == 'hucum' then sinir = math.max(sinir * 3, 300.0) end   -- hücum edenler kolay geri dönmez
     if alarmSinir then sinir = math.max(sinir, alarmSinir) end
 
     -- Evine dönüyor mu?

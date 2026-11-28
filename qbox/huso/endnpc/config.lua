@@ -31,6 +31,42 @@ Ayar.VarsayilanGrup = {
     takipMesafesi = 80,          -- metre: evinden bu kadar uzaklaşınca kovalamayı bırakıp geri döner
     dusukCanEsigi = 25,          -- can yüzde kaçın altına düşünce davranış değişir
     dusukCanDavranisi = 'siper', -- devam / siper / kac / cildir
+    ihbar = false,               -- bu grubun NPC'leri çatışınca polise ihbar gitsin mi
+    ganimetParaMin = 0,          -- ölünce üstünden çıkan nakit (en az / en çok). 0 / 0 = para yok
+    ganimetParaMax = 0,
+    ganimetSilah = false,        -- elindeki silah da çıksın mı
+    ganimetEsyalar = {},         -- { { item = 'bandage', min = 1, max = 2, sans = 50 } }  sans = yüzde ihtimal
+}
+
+-- Polise ihbar: aynı bölgeden en fazla bu kadar saniyede bir ihbar gider (polisler boğulmasın)
+Ayar.Ihbar = {
+    bekleme = 90,      -- saniye
+    alan = 150.0,      -- metre: bu mesafedeki çatışmalar "aynı olay" sayılır
+    yazi = 'Silah sesleri ihbarı',
+}
+
+-- Kiralık koruma (panelde Ayarlar sekmesinden değiştirilir)
+Ayar.VarsayilanKoruma = {
+    aktif = false,               -- ajans konumu seçilip etkinleştirilince açılır
+    fiyat = 500,                 -- koruma başına
+    sure = 15,                   -- dakika
+    enFazla = 2,                 -- bir oyuncu aynı anda en fazla kaç koruma tutabilir
+    model = 's_m_m_highsec_01',
+    silah = 'WEAPON_PISTOL',
+    can = 200,
+    zirh = 50,
+    ajansModel = 's_m_m_highsec_02',   -- ajansta duran, konuşulan NPC
+}
+
+-- Dalga etkinliği varsayılanları
+Ayar.VarsayilanEtkinlik = {
+    ad = 'Yeni etkinlik',
+    dalgaSayisi = 3,
+    ilkDalga = 4,          -- ilk dalgada kaç düşman
+    artis = 2,             -- her dalgada kaç düşman daha
+    dalgaArasi = 20,       -- bir dalga temizlenince sıradakine kaç saniye
+    sureDk = 15,           -- en fazla süre (dakika); dolunca etkinlik biter
+    duyuru = true,         -- bütün oyunculara duyurulsun mu
 }
 
 -- Yeni NPC açılınca gelen değerler
@@ -77,13 +113,25 @@ Ayar.Sinirlar = {
     rotaBekleme = { 0, 300 },
     yaricap = { 5, 300 },
     alarmSuresi = { 0, 600 },
+    ganimetParaMin = { 0, 100000 },
+    ganimetParaMax = { 0, 100000 },
+    ganimetAdet = { 1, 100 },
+    ganimetSans = { 1, 100 },
+    fiyat = { 0, 1000000 },
+    sure = { 1, 180 },
+    enFazla = { 1, 6 },
+    dalgaSayisi = { 1, 20 },
+    ilkDalga = { 1, 30 },
+    artis = { 0, 10 },
+    dalgaArasi = { 5, 300 },
+    sureDk = { 1, 120 },
 }
 
 -- Seçenekli ayarların izin verilen değerleri
 Ayar.Secenekler = {
     iliski = { 'dost', 'tarafsiz', 'dusman' },
     hareket = { 'saldirgan', 'savunmaci', 'sabit' },
-    davranis = { 'nobetci', 'devriye', 'rota', 'saldirgan', 'sabit', 'pasif' },
+    davranis = { 'nobetci', 'devriye', 'rota', 'saldirgan', 'hucum', 'sabit', 'pasif' },
     dusukCanDavranisi = { 'devam', 'siper', 'kac', 'cildir' },
     olumDavranisi = { 'sil', 'yenidenDog', 'bekle' },
     rotaTur = { 'dongu', 'gidipGel' },
@@ -103,6 +151,7 @@ Ayar.Etiketler = {
         devriye = 'Devriye – çevresinde dolaşır',
         rota = 'Rota – belirlediğin noktalar arasında sırayla devriye gezer',
         saldirgan = 'Avcı – geniş alanda dolaşıp düşman arar, uzağa kovalar',
+        hucum = 'Hücum – hedef noktaya koşar, yolda gördüğü düşmanla çatışır (etkinliklerde)',
         sabit = 'Sabit – hiç yürümez, olduğu yerden ateş eder',
         pasif = 'Pasif – kimseye saldırmaz, saldırılınca kaçar',
     },

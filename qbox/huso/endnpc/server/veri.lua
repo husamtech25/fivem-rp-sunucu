@@ -12,6 +12,7 @@ Veri = {
     npcler = {},    -- [npcId] = { id, ad, grup, model, x, y, z, h, ... }
     sablonlar = {}, -- [sablonId] = { id, ad, aciklama, uyeler = { { model, silah, ..., dx, dy, dz, dh } } }
     bolgeler = {},  -- [bolgeId] = { id, ad, grup, x, y, z, yaricap, oyuncuAlarm, alarmSuresi, aktif }
+    etkinlikler = {}, -- [etkinlikId] = { id, ad, grup, sablon, dalgaSayisi, ..., x, y, z, dogma = { {x,y,z} } }
     sonId = 0,
 }
 
@@ -86,8 +87,16 @@ function RenkGecerli(hex) return type(hex) == 'string' and renkler[hex] == true 
 -- ================= Kaydetme =================
 -- Arka arkaya çok değişiklik olursa dosyaya bir kere yazsın diye 1 saniye bekler.
 
+-- Etkinlik NPC'leri (gecici) dosyaya yazılmaz: sunucu kapanınca etkinlik de biter
 function HemenKaydet()
-    SaveResourceFile(KAYNAK, DOSYA, json.encode(Veri, { indent = true }), -1)
+    local kalici = {}
+    for id, n in pairs(Veri.npcler) do
+        if not n.gecici then kalici[id] = n end
+    end
+    local yazilacak = {}
+    for k, v in pairs(Veri) do yazilacak[k] = v end
+    yazilacak.npcler = kalici
+    SaveResourceFile(KAYNAK, DOSYA, json.encode(yazilacak, { indent = true }), -1)
 end
 
 local kayitBekliyor = false
@@ -136,6 +145,7 @@ local function yukle()
         Veri.iliskiler = type(okunan.iliskiler) == 'table' and okunan.iliskiler or {}
         Veri.npcler = type(okunan.npcler) == 'table' and okunan.npcler or {}
         Veri.bolgeler = type(okunan.bolgeler) == 'table' and okunan.bolgeler or {}
+        Veri.etkinlikler = type(okunan.etkinlikler) == 'table' and okunan.etkinlikler or {}
         Veri.sonId = tonumber(okunan.sonId) or 0
         if type(okunan.sablonlar) == 'table' then
             Veri.sablonlar = okunan.sablonlar
@@ -148,6 +158,13 @@ local function yukle()
     end
 
     eksikleriDoldur(Veri.ayarlar, Ayar.VarsayilanAyarlar)
+    Veri.ayarlar.koruma = type(Veri.ayarlar.koruma) == 'table' and Veri.ayarlar.koruma or {}
+    eksikleriDoldur(Veri.ayarlar.koruma, Ayar.VarsayilanKoruma)
+    for id, e in pairs(Veri.etkinlikler) do
+        e.id = id
+        eksikleriDoldur(e, Ayar.VarsayilanEtkinlik)
+        e.dogma = type(e.dogma) == 'table' and e.dogma or {}
+    end
     for id, g in pairs(Veri.gruplar) do
         g.id = id
         eksikleriDoldur(g, Ayar.VarsayilanGrup)

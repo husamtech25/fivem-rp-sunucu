@@ -123,6 +123,37 @@ const GRUP_ALANLAR = [
     { ad: 'takipMesafesi', etiket: 'En fazla takip mesafesi', tip: 'aralik', birim: ' m', not: 'NPC yerinden bu kadar uzaklaşınca kovalamayı bırakıp geri döner (avcılar iki katı).' },
     { ad: 'dusukCanEsigi', etiket: 'Düşük can eşiği', tip: 'aralik', birim: '%', not: '0 = kapalı.' },
     { ad: 'dusukCanDavranisi', etiket: 'Canı eşiğin altına inince', tip: 'secim', liste: 'dusukCanDavranisi' },
+    { ad: 'ihbar', etiket: 'Çatışmaya girince polise ihbar gitsin', tip: 'onay', not: 'Görevdeki polislere "Silah sesleri ihbarı" ve harita işareti gider. Aynı yerden en fazla 90 saniyede bir.' },
+    { ad: 'ganimetParaMin', etiket: 'Ganimet: en az nakit ($)', tip: 'sayi' },
+    { ad: 'ganimetParaMax', etiket: 'Ganimet: en çok nakit ($)', tip: 'sayi', not: 'İkisi de 0 ise para çıkmaz.' },
+    { ad: 'ganimetSilah', etiket: 'Ganimet: elindeki silah da çıksın', tip: 'onay' },
+    { ad: 'ganimetEsyalar', etiket: 'Ganimet: eşyalar', tip: 'ganimet', toplu: false, not: 'Her satır: eşya, en az–en çok adet, çıkma ihtimali (%). Oyuncular cesede Sol Alt ile bakıp "Üstünü ara" der.' },
+];
+
+const KORUMA_ALANLAR = [
+    { ad: 'aktif', etiket: 'Koruma ajansı açık', tip: 'onay' },
+    { ad: 'konum', etiket: 'Ajansın yeri (oyuncular buradaki NPC ile konuşur)', tip: 'konum' },
+    { ad: 'fiyat', etiket: 'Koruma başına fiyat ($)', tip: 'sayi', not: 'Önce nakitten, yetmezse bankadan alınır.' },
+    { ad: 'sure', etiket: 'Kiralama süresi (dakika)', tip: 'sayi' },
+    { ad: 'enFazla', etiket: 'Bir oyuncu en fazla kaç koruma tutabilir', tip: 'sayi' },
+    { ad: 'model', etiket: 'Koruma modeli', tip: 'model' },
+    { ad: 'silah', etiket: 'Koruma silahı', tip: 'silah' },
+    { ad: 'can', etiket: 'Koruma canı', tip: 'sayi' },
+    { ad: 'zirh', etiket: 'Koruma zırhı', tip: 'aralik' },
+];
+
+const ETKINLIK_ALANLAR = [
+    { ad: 'ad', etiket: 'Etkinlik adı', tip: 'metin', uzunluk: 32 },
+    { ad: 'grup', etiket: 'Saldıran grup', tip: 'grup', not: 'Oyunculara saldırmaları için bu grubun oyunculara "Düşman" olması gerekir (Gruplar / İlişkiler).' },
+    { ad: 'sablon', etiket: 'Düşman tipleri (şablon)', tip: 'sablon', not: 'Dalgadaki NPC\'ler bu şablonun üyelerinden sırayla seçilir (model, silah, can, araç).' },
+    { ad: 'dalgaSayisi', etiket: 'Dalga sayısı', tip: 'sayi' },
+    { ad: 'ilkDalga', etiket: 'İlk dalgada kaç düşman', tip: 'sayi' },
+    { ad: 'artis', etiket: 'Her dalgada kaç düşman daha', tip: 'sayi' },
+    { ad: 'dalgaArasi', etiket: 'Dalgalar arası bekleme (saniye)', tip: 'sayi', not: 'Bir dalganın hepsi ölünce sayaç başlar.' },
+    { ad: 'sureDk', etiket: 'En fazla süre (dakika)', tip: 'sayi', not: 'Süre dolarsa etkinlik biter ve kalan düşmanlar silinir.' },
+    { ad: 'konum', etiket: 'Savunulacak merkez (düşmanlar buraya hücum eder)', tip: 'konum' },
+    { ad: 'dogma', etiket: 'Düşmanların doğacağı noktalar', tip: 'rota', sade: true, toplu: false, not: 'Her dalga sıradaki noktadan gelir. Merkezden 50–150 m uzakta, oyuncuların görmediği yerler iyi olur.' },
+    { ad: 'duyuru', etiket: 'Bütün oyunculara duyurulsun', tip: 'onay' },
 ];
 
 const AYAR_ALANLAR = [
@@ -171,7 +202,7 @@ function kontrolHtml(a, d) {
                 <input type="range" data-alan="ofke" min="${min}" max="${max}" step="1" value="${grubun ? 50 : e(d)}" ${grubun ? 'disabled' : ''}>`;
         }
         case 'konum':
-            return `<div class="konum-kutu ${S.konum ? 'var' : ''}" data-konum-yazi>${e(konumYazi(S.konum))}</div>
+            return `<div class="konum-kutu ${d ? 'var' : ''}" data-konum-yazi data-konum="${e(JSON.stringify(d || null))}">${e(konumYazi(d))}</div>
                 <div class="dugmeler">
                     <button type="button" data-konum-btn="ben">Bulunduğum yer</button>
                     <button type="button" data-konum-btn="nisan">Nişan alarak seç</button>
@@ -187,8 +218,24 @@ function kontrolHtml(a, d) {
                 </select>
                 <input type="text" data-alan="aracOzel" placeholder="ör. granger" value="${hazir ? '' : e(d)}" class="${hazir ? 'gizli' : ''}">`;
         }
+        case 'sablon': {
+            const liste = Object.values(S.veri?.sablonlar || {}).sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
+            return `<select data-alan="sablon">${liste.map((s) => `<option value="${e(s.id)}" ${s.id === d ? 'selected' : ''}>${e(s.ad)} (${(s.uyeler || []).length} tip)</option>`).join('')}</select>`;
+        }
+        case 'ganimet':
+            return `<div class="ganimet-liste" data-ganimet-liste>${(Array.isArray(d) ? d : []).map(ganimetSatiri).join('')}</div>
+                <div class="dugmeler"><button type="button" data-ganimet-ekle>+ Eşya ekle</button></div>`;
         case 'rota': {
             const v = degerlerSon || {};
+            if (a.sade) {
+                return `<div class="rota-liste" data-rota-liste>${rotaListeHtml()}</div>
+                <div class="dugmeler">
+                    <button type="button" data-rota-btn="ben">+ Bulunduğum yer</button>
+                    <button type="button" data-rota-btn="nisan">+ Nişan al</button>
+                    <button type="button" data-rota-btn="waypoint">+ Harita işareti</button>
+                    <button type="button" class="yazi" data-rota-btn="temizle">Temizle</button>
+                </div>`;
+            }
             return `<div class="rota-liste" data-rota-liste>${rotaListeHtml()}</div>
                 <div class="dugmeler">
                     <button type="button" data-rota-btn="ben">+ Bulunduğum yer</button>
@@ -211,7 +258,18 @@ function kontrolHtml(a, d) {
     return '';
 }
 
-let degerlerSon = null;   // rota alanı rotaTur / rotaBekleme için bütün değerlere bakar
+let degerlerSon = null;
+
+function ganimetSatiri(g = {}) {
+    return `<div class="ganimet-satir">
+        <input type="text" list="esyaListe" data-g="item" placeholder="eşya adı (ör. bandage)" value="${e(g.item || '')}">
+        <input type="number" data-g="min" min="1" max="100" value="${e(g.min ?? 1)}" title="En az">
+        <span class="soluk">–</span>
+        <input type="number" data-g="max" min="1" max="100" value="${e(g.max ?? 1)}" title="En çok">
+        <input type="number" data-g="sans" min="1" max="100" value="${e(g.sans ?? 100)}" title="İhtimal (%)"><span class="soluk">%</span>
+        <button type="button" class="kucuk yazi" data-ganimet-sil title="Satırı sil">✕</button>
+    </div>`;
+}   // rota alanı rotaTur / rotaBekleme için bütün değerlere bakar
 
 function rotaListeHtml() {
     if (S.rota.length === 0) return `<div class="konum-kutu">Henüz nokta yok</div>`;
@@ -239,8 +297,8 @@ function formHtml(alanlar, degerler, toplu = false) {
 function konumuGoster(kap) {
     const yazi = $('[data-konum-yazi]', kap);
     if (!yazi) return;
-    yazi.textContent = konumYazi(S.konum);
-    yazi.classList.toggle('var', !!S.konum);
+    yazi.textContent = konumYazi(kap.__konum);
+    yazi.classList.toggle('var', !!kap.__konum);
 }
 
 // Oyundan bir konum ister: 'ben' (bulunduğun yer), 'waypoint' (harita işareti), 'nisan' (nişan alarak)
@@ -262,7 +320,7 @@ async function konumIste(kap, tur) {
 async function konumAl(kap, tur) {
     const k = await konumIste(kap, tur);
     if (!k) return;
-    S.konum = k;
+    kap.__konum = k;
     konumuGoster(kap);
     bildir('Konum seçildi.', 'bilgi');
 }
@@ -313,6 +371,8 @@ async function modelGecerliMi(model) {
 
 // Form içindeki etkileşimleri bağlar (kaydırıcı değeri, özel model, renk, toplu seçim, konum)
 function formuBagla(kap) {
+    const konumKutusu = $('[data-konum-yazi]', kap);
+    kap.__konum = konumKutusu ? JSON.parse(konumKutusu.dataset.konum || 'null') : null;
     kap.oninput = (ev) => {
         const el = ev.target;
         if (el.type === 'range') {
@@ -341,6 +401,9 @@ function formuBagla(kap) {
         }
         const konumBtn = ev.target.closest('[data-konum-btn]');
         if (konumBtn) konumAl(kap, konumBtn.dataset.konumBtn);
+        if (ev.target.closest('[data-ganimet-ekle]')) $('[data-ganimet-liste]', kap).insertAdjacentHTML('beforeend', ganimetSatiri());
+        const gSil = ev.target.closest('[data-ganimet-sil]');
+        if (gSil) gSil.closest('.ganimet-satir').outerHTML = '';
         const rotaBtn = ev.target.closest('[data-rota-btn]');
         if (rotaBtn) rotaIslemi(kap, rotaBtn.dataset.rotaBtn);
         const rotaSil = ev.target.closest('[data-rota-sil]');
@@ -369,9 +432,19 @@ function formuOku(kap, alanlar, toplu = false) {
                 if ($('[data-alan="ofkeGrup"]', kap).checked) sonuc.ofkeGrup = true;
                 else sonuc.ofke = Number(el.value);
                 break;
-            case 'konum': if (S.konum) Object.assign(sonuc, S.konum); break;
+            case 'konum': if (kap.__konum) Object.assign(sonuc, kap.__konum); break;
             case 'arac': sonuc.arac = aracOku(kap); break;
+            case 'sablon': sonuc.sablon = el ? el.value : undefined; break;
+            case 'ganimet':
+                sonuc.ganimetEsyalar = $$('.ganimet-satir', kap).map((satir) => ({
+                    item: $('[data-g="item"]', satir).value.trim().toLowerCase(),
+                    min: Number($('[data-g="min"]', satir).value),
+                    max: Number($('[data-g="max"]', satir).value),
+                    sans: Number($('[data-g="sans"]', satir).value),
+                })).filter((g) => g.item);
+                break;
             case 'rota':
+                if (a.sade) { sonuc[a.ad] = S.rota.slice(); break; }
                 sonuc.rota = S.rota.slice();
                 sonuc.rotaTur = $('[data-alan="rotaTur"]', kap).value;
                 sonuc.rotaBekleme = Number($('[data-alan="rotaBekleme"]', kap).value);
@@ -449,6 +522,7 @@ function ciz() {
     if (S.sekme === 'iliski' && !$('#iliskiKap').contains(document.activeElement)) cizIliskiler();
     if (S.sekme === 'sablon') cizSablonlar();
     if (S.sekme === 'bolge') cizBolgeler();
+    if (S.sekme === 'etkinlik') cizEtkinlikler();
 }
 
 function cizIstatistik() {
@@ -459,7 +533,8 @@ function cizIstatistik() {
         <span>Canlı <b class="r-dost">${say('canli')}</b></span>
         <span>Ölü <b class="r-dusman">${say('olu')}</b></span>
         <span>Kayıtlı <b>${liste.length}</b></span>
-        <span>Grup <b>${gruplar().length}</b></span>`;
+        <span>Grup <b>${gruplar().length}</b></span>
+        ${S.veri.aktifEtkinlik ? `<span>Etkinlik <b class="r-dusman">dalga ${S.veri.aktifEtkinlik.dalga}/${S.veri.aktifEtkinlik.dalgaSayisi}</b></span>` : ''}`;
 }
 
 // ================= NPC sekmesi =================
@@ -543,14 +618,14 @@ function npcCekmece(n) {
     if (gruplar().length === 0) return bildir('Önce Gruplar sekmesinden bir grup oluştur.', 'hata');
     const yeni = !n;
     const v = n ? { ...n } : { ...S.ayar.varsayilanNpc, grup: $('#npcGrupFiltre').value || gruplar()[0].id, ad: `NPC ${npcler().length + 1}` };
-    S.konum = n ? { x: n.x, y: n.y, z: n.z, h: n.h } : null;
+    v.konum = n ? { x: n.x, y: n.y, z: n.z, h: n.h } : null;
     S.rota = Array.isArray(n?.rota) ? n.rota.map((p) => ({ ...p })) : [];
 
     cekmeceAc(yeni ? 'Yeni NPC' : `Düzenle: ${n.ad}`, formHtml(NPC_ALANLAR, v), async () => {
         const kap = $('#cekmeceForm');
         const veri = formuOku(kap, NPC_ALANLAR);
         if (!veri.model) return bildir('Bir model seç.', 'hata');
-        if (!S.konum) return bildir('Önce bir konum seç.', 'hata');
+        if (!kap.__konum) return bildir('Önce bir konum seç.', 'hata');
         if (veri.davranis === 'rota' && veri.rota.length === 0) return bildir('Rota davranışı için en az bir rota noktası ekle.', 'hata');
         if (!(await modelGecerliMi(veri.model))) return;
         if (veri.arac) {
@@ -755,7 +830,6 @@ function cizSablonlar() {
 function sablonYerlestir(s) {
     if (gruplar().length === 0) return bildir('Önce bir grup oluştur.', 'hata');
     const ilkModel = s.uyeler?.[0]?.model;
-    S.konum = null;
     modalAc(`Yerleştir: ${s.ad}`,
         `<p><b>${(s.uyeler || []).length}</b> NPC seçtiğin konuma, baktığın yöne doğru dizilecek.</p>
          <div class="form">
@@ -766,10 +840,10 @@ function sablonYerlestir(s) {
             ], { grup: $('#npcGrupFiltre').value || gruplar()[0].id, onEk: '' })}
          </div>`,
         async () => {
-            if (!S.konum) return bildir('Önce bir konum seç.', 'hata');
             const kap = $('#modalIcerik');
+            if (!kap.__konum) return bildir('Önce bir konum seç.', 'hata');
             const sonuc = await islem('sablonYerlestir', {
-                id: s.id, grup: $('[data-alan="grup"]', kap).value, onEk: $('[data-alan="onEk"]', kap).value, ...S.konum,
+                id: s.id, grup: $('[data-alan="grup"]', kap).value, onEk: $('[data-alan="onEk"]', kap).value, ...kap.__konum,
             });
             if (sonuc === null) return;
             modalKapat();
@@ -866,14 +940,84 @@ function bolgeCekmece(b) {
     if (gruplar().length === 0) return bildir('Önce bir grup oluştur.', 'hata');
     const yeni = !b;
     const v = b ? { ...b } : { ...S.ayar.varsayilanBolge, grup: gruplar()[0].id, ad: `Bölge ${bolgeler().length + 1}` };
-    S.konum = b ? { x: b.x, y: b.y, z: b.z, h: 0 } : null;
+    v.konum = b ? { x: b.x, y: b.y, z: b.z, h: 0 } : null;
     cekmeceAc(yeni ? 'Yeni bölge' : `Bölge: ${b.ad}`, formHtml(BOLGE_ALANLAR, v), async () => {
         const veri = formuOku($('#cekmeceForm'), BOLGE_ALANLAR);
-        if (!S.konum) return bildir('Bölgenin merkezini seç.', 'hata');
+        if (!$('#cekmeceForm').__konum) return bildir('Bölgenin merkezini seç.', 'hata');
         delete veri.h;
         if (b) veri.id = b.id;
         if (await islem('bolgeKaydet', veri) === null) return;
         bildir(yeni ? 'Bölge oluşturuldu.' : 'Bölge güncellendi.');
+        cekmeceKapat();
+        yenile();
+    });
+    if (yeni) konumAl($('#cekmeceForm'), 'ben');
+}
+
+// ================= Etkinlik sekmesi =================
+
+const etkinlikler = () => Object.values(S.veri?.etkinlikler || {}).sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
+
+function sureYazi(sn) {
+    const d = Math.floor(sn / 60), s = sn % 60;
+    return `${d}:${String(s).padStart(2, '0')}`;
+}
+
+function cizEtkinlikler() {
+    const liste = etkinlikler();
+    const aktif = S.veri.aktifEtkinlik;
+    $('#etkinlikListe').innerHTML = liste.length === 0
+        ? `<div class="bos"><p>Henüz etkinlik yok.</p></div>`
+        : liste.map((ev) => {
+            const g = grup(ev.grup);
+            const sab = S.veri.sablonlar?.[ev.sablon];
+            const buAktif = aktif && aktif.id === ev.id;
+            let toplam = 0;
+            for (let i = 0; i < ev.dalgaSayisi; i++) toplam += ev.ilkDalga + i * ev.artis;
+            const durum = buAktif ? `<div class="etkinlik-durum">
+                    SÜRÜYOR · Dalga <b>${aktif.dalga}/${aktif.dalgaSayisi}</b> · Kalan düşman <b>${aktif.kalanDusman}</b>
+                    · Öldürülen <b>${aktif.oldurulen}</b> · Kalan süre <b>${sureYazi(aktif.kalanSure)}</b>
+                    ${aktif.sonrakiDalga != null ? ` · Sıradaki dalga <b>${aktif.sonrakiDalga} sn</b>` : ''}
+                </div>` : '';
+            return `<div class="kart" data-id="${e(ev.id)}" style="--renk:${e(g?.renk)}">
+                <div class="kart-ust"><i class="nokta" style="background:${e(g?.renk)}"></i><h3>${e(ev.ad)}</h3></div>
+                ${durum}
+                <div class="kart-bilgi">
+                    <span>Saldıran: <b>${e(g?.ad || '— (grup silinmiş)')}</b></span>
+                    <span>Tipler: <b>${e(sab?.ad || '— (şablon silinmiş)')}</b></span>
+                    <span>Dalga: <b>${ev.dalgaSayisi}</b></span>
+                    <span>Toplam düşman: <b>${toplam}</b></span>
+                    <span>Doğma noktası: <b>${(ev.dogma || []).length}</b></span>
+                    <span>Süre: <b>${ev.sureDk} dk</b></span>
+                </div>
+                <div class="kart-alt">
+                    ${buAktif ? '' : '<button class="kucuk tehlike" data-islem="sil">Sil</button>'}
+                    <button class="kucuk" data-islem="isinlan">Işınlan</button>
+                    ${buAktif ? '' : '<button class="kucuk" data-islem="duzenle">Düzenle</button>'}
+                    ${buAktif
+                        ? '<button class="kucuk tehlike" data-islem="durdur">Durdur</button>'
+                        : `<button class="kucuk birincil" data-islem="baslat" ${aktif ? 'disabled title="Başka etkinlik sürüyor"' : ''}>Başlat</button>`}
+                </div>
+            </div>`;
+        }).join('');
+}
+
+function etkinlikCekmece(ev) {
+    if (gruplar().length === 0) return bildir('Önce bir grup oluştur.', 'hata');
+    if (Object.keys(S.veri.sablonlar || {}).length === 0) return bildir('Önce bir şablon oluştur.', 'hata');
+    const yeni = !ev;
+    const v = ev ? { ...ev } : { ...S.ayar.varsayilanEtkinlik, grup: gruplar()[0].id, sablon: Object.keys(S.veri.sablonlar)[0] };
+    v.konum = ev ? { x: ev.x, y: ev.y, z: ev.z, h: 0 } : null;
+    S.rota = Array.isArray(ev?.dogma) ? ev.dogma.map((p) => ({ ...p })) : [];
+    cekmeceAc(yeni ? 'Yeni etkinlik' : `Etkinlik: ${ev.ad}`, formHtml(ETKINLIK_ALANLAR, v), async () => {
+        const kap = $('#cekmeceForm');
+        const veri = formuOku(kap, ETKINLIK_ALANLAR);
+        if (!kap.__konum) return bildir('Savunulacak merkezi seç.', 'hata');
+        if (!veri.dogma.length) return bildir('Düşmanların doğacağı en az bir nokta ekle.', 'hata');
+        delete veri.h;
+        if (ev) veri.id = ev.id;
+        if (await islem('etkinlikKaydet', veri) === null) return;
+        bildir(yeni ? 'Etkinlik oluşturuldu.' : 'Etkinlik güncellendi.');
         cekmeceKapat();
         yenile();
     });
@@ -889,6 +1033,13 @@ function cizAyarlar() {
     $('#gorselBlip').checked = S.gorsel.blip;
     $('#gorselEtiket').checked = S.gorsel.etiket;
     $('#gorselBolge').checked = !!S.gorsel.bolge;
+
+    const k = S.veri.koruma || {};
+    const korumaKap = $('#korumaForm');
+    korumaKap.innerHTML = formHtml(KORUMA_ALANLAR, { ...k, konum: k.ajans || null });
+    formuBagla(korumaKap);
+    korumaKap.dataset.model = k.ajansModel || '';
+    $('#korumaSayisi').textContent = S.veri.kiralananKoruma ? `Şu an ${S.veri.kiralananKoruma} koruma kiralanmış.` : '';
 }
 
 // ================= Sekme / açma / kapama =================
@@ -906,6 +1057,7 @@ function sekmeyeGec(ad) {
 function ac(veri) {
     S.ayar = veri.ayar;
     S.gorsel = veri.gorsel || S.gorsel;
+    $('#esyaListe').innerHTML = (S.ayar.esyalar || []).map((x) => `<option value="${e(x.ad)}">${e(x.etiket)}</option>`).join('');
     document.body.classList.remove('sakli');
     $('#panel').classList.remove('gizli');
     yenile().then(() => sekmeyeGec(S.sekme));
@@ -1041,6 +1193,39 @@ $('#ayarKaydetBtn').onclick = async () => {
 $('#gorselBlip').onchange = (ev) => { S.gorsel.blip = ev.target.checked; nui('gorsel', S.gorsel); };
 $('#gorselEtiket').onchange = (ev) => { S.gorsel.etiket = ev.target.checked; nui('gorsel', S.gorsel); };
 $('#gorselBolge').onchange = (ev) => { S.gorsel.bolge = ev.target.checked; nui('gorsel', S.gorsel); };
+
+// Kiralık koruma
+$('#korumaKaydetBtn').onclick = async () => {
+    const veri = formuOku($('#korumaForm'), KORUMA_ALANLAR);
+    if (!(await modelGecerliMi(veri.model))) return;
+    if (await islem('korumaKaydet', veri) === null) return;
+    bildir('Koruma ayarları kaydedildi.');
+    await yenile();
+    cizAyarlar();
+};
+
+// Etkinlik
+$('#yeniEtkinlikBtn').onclick = () => etkinlikCekmece(null);
+$('#etkinlikListe').onclick = async (olay) => {
+    const kart = olay.target.closest('.kart[data-id]');
+    const tur = olay.target.closest('[data-islem]')?.dataset.islem;
+    const ev = kart && S.veri.etkinlikler?.[kart.dataset.id];
+    if (!ev || !tur) return;
+    if (tur === 'duzenle') etkinlikCekmece(ev);
+    if (tur === 'isinlan') nui('isinlan', { x: ev.x, y: ev.y, z: ev.z + 1.0 });
+    if (tur === 'baslat' && await onayla('Etkinlik başlasın mı?', `<b>${e(ev.ad)}</b> başlayacak${ev.duyuru ? ' ve bütün oyunculara duyurulacak' : ''}.`, 'Başlat', false)) {
+        if (await islem('etkinlikBaslat', { id: ev.id }) !== null) bildir('Etkinlik başladı. İlk dalga 10 saniye içinde.');
+        yenile();
+    }
+    if (tur === 'durdur' && await onayla('Etkinlik durdurulsun mu?', 'Kalan bütün etkinlik düşmanları silinecek.', 'Durdur')) {
+        if (await islem('etkinlikDurdur') !== null) bildir('Etkinlik durduruldu.');
+        yenile();
+    }
+    if (tur === 'sil' && await onayla('Etkinlik silinsin mi?', `<b>${e(ev.ad)}</b> silinecek.`, 'Sil')) {
+        if (await islem('etkinlikSil', { id: ev.id }) !== null) bildir('Etkinlik silindi.');
+        yenile();
+    }
+};
 
 // Şablonlar
 $('#npcSablonYapBtn').onclick = () => seciliNpclerdenSablon();

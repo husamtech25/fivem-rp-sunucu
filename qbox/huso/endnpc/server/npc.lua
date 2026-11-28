@@ -43,6 +43,7 @@ local function senkPaketi()
                 rota = n.rota,
                 rotaTur = n.rotaTur,
                 rotaBekleme = n.rotaBekleme,
+                hedef = n.hedef,
             }
         end
     end
@@ -55,7 +56,8 @@ local function senkPaketi()
         gruplar = Veri.gruplar,
         iliskiler = Veri.iliskiler,
         bolgeler = bolgeler,
-        ayarlar = { aiAralik = Veri.ayarlar.aiAralik },
+        ayarlar = { aiAralik = Veri.ayarlar.aiAralik, koruma = Veri.ayarlar.koruma },
+        etkinlik = EtkinlikSenkBilgisi and EtkinlikSenkBilgisi() or nil,
         npcler = npcler,
     }
 end
@@ -204,6 +206,8 @@ local function olduIsaretle(id)
     if not c or c.durum ~= 'canli' then return end
     c.durum = 'olu'
     c.olumZamani = os.time()
+    if GanimetHazirla then GanimetHazirla(id, c) end
+    if EtkinlikNpcOldu then EtkinlikNpcOldu(id) end
     SenkGonder()
 end
 
@@ -240,7 +244,7 @@ CreateThread(function()
                 Canli[id] = nil
                 local n = Veri.npcler[id]
                 if n then
-                    if ayar.olumDavranisi == 'sil' then
+                    if n.gecici or ayar.olumDavranisi == 'sil' then   -- etkinlik NPC'si hep silinir
                         Veri.npcler[id] = nil
                     elseif ayar.olumDavranisi == 'yenidenDog' then
                         Bekleyen[id] = simdi + ayar.yenidenDogmaSuresi
