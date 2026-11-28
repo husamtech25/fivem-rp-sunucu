@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Polis Tableti</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="tablet" class="tablet gizli">
+    <div class="ekran">
+        <header class="ust">
+            <div class="rozet-logo">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z" fill="currentColor"/></svg>
+            </div>
+            <div class="baslik">
+                <b>Los Santos Polis Departmanı</b>
+                <small>Endcore RP · Mobil Veri Terminali</small>
+            </div>
+            <div class="memur" id="memur"></div>
+            <div class="saat" id="saat"></div>
+            <button class="kapat" id="kapatBtn" title="Kapat (ESC)">✕</button>
+        </header>
+
+        <div class="govde">
+            <nav class="yan">
+                <button data-sekme="ihbar" class="aktif">
+                    <span class="ikon">!</span> İhbarlar <span class="sayac gizli" id="ihbarSayac"></span>
+                </button>
+                <button data-sekme="ekip"><span class="ikon">●</span> Ekip</button>
+                <button data-sekme="konum"><span class="ikon">⌖</span> Konumlar</button>
+                <div class="yan-alt" id="gorevDurum"></div>
+            </nav>
+
+            <main>
+                <!-- İhbarlar -->
+                <section class="sekme" id="sekme-ihbar">
+                    <div class="arac">
+                        <h2>İhbarlar</h2>
+                        <div class="filtre">
+                            <button data-filtre="acik" class="aktif">Açık</button>
+                            <button data-filtre="benim">Üstlendiklerim</button>
+                            <button data-filtre="hepsi">Hepsi</button>
+                        </div>
+                    </div>
+                    <div class="liste" id="ihbarListe"></div>
+                </section>
+
+                <!-- Ekip -->
+                <section class="sekme gizli" id="sekme-ekip">
+                    <div class="arac"><h2>Görevdeki ekip</h2><span class="soluk" id="ekipSayi"></span></div>
+                    <div class="liste" id="ekipListe"></div>
+                </section>
+
+                <!-- Konumlar -->
+                <section class="sekme gizli" id="sekme-konum">
+                    <div class="arac"><h2>Önemli konumlar</h2><input type="search" id="konumAra" placeholder="Ara…"></div>
+                    <div class="liste" id="konumListe"></div>
+                </section>
+            </main>
+        </div>
+    </div>
+</div>
+<div id="bildirimler" class="bildirimler"></div>
+<script src="app.js"></script>
+</body>
+</html>

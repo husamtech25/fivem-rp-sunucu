@@ -10,6 +10,7 @@ Hazır Qbox scriptlerinin tamamı burada değil; onlar kendi GitHub depolarında
 | `qbox/huso/polisyardim` | Polis noktalarına yer işaretleri + `/npckoy <tür>` ile yerleştirilen NPC'ler |
 | `qbox/huso/kisayollar` | Admin kısayolları: F6 admin görevi (`/optin`), F10 admin menüsü (`/admin`) |
 | `qbox/huso/endnpc` | NPC yönetim paneli (`/npcpanel`, F7): NPC'ler, gruplar, grup ilişkileri, otomatik NPC savaşı, hazır ekip şablonları, devriye rotası, araçlı NPC'ler ve korunan bölgeler. Ayrıntı: klasördeki README |
+| `qbox/huso/polistablet` | Polis tableti (envanterde `polis_tablet` eşyası, MRPD cephaneliğinde): ihbarlar (üstlen / kapat / GPS), görevdeki ekip, önemli konumlar |
 | `qbox/degisiklikler` | Hazır Qbox scriptlerinde değiştirdiğimiz dosyalar (açıklamalar aşağıda) |
 | `qbox/cfg` | `ox.cfg`, `permissions.cfg` ve lisans anahtarı silinmiş `server.cfg.ornek` |
 | `qbox/sql/mrpd_kapilar.sql` | MRPD'nin 31 kapı kilidi (ox_doorlock tablosuna) |
@@ -42,7 +43,8 @@ NPC'ler `npcler.json` dosyasında saklanır; `/npcsil` en yakın NPC'yi siler.
 | `qbx_vehiclekeys/client/main.lua` | Motor tuşu varsayılanı `J` | `config.keySearchBind` tanımlı değildi |
 | `ox_lib/.../textui.lua` | `[E]` yazıları büyütüldü | Varsayılan yazı çok küçüktü |
 | `ox_doorlock/config.lua` | `DrawTextUI = true` | Kapıda "[E] Kilidi aç" yazısı çıksın |
-| `ox_inventory/data/shops.lua` | `Eczane` dükkanı eklendi | `eczane` NPC'si için, konumsuz |
+| `ox_inventory/data/shops.lua` | `Eczane` dükkanı eklendi; polis cephaneliğine `polis_tablet` | `eczane` NPC'si için, konumsuz; polis tableti |
+| `ox_inventory/data/items.lua` | `polis_tablet` eşyası (kullanınca `polistablet` açılır) | Polis tableti |
 | `qbx_police/config/shared.lua` | MRPD mesai noktası kapatıldı | Yerine mesai NPC'si |
 | `qbx_management`, `qbx_cityhall`, `qbx_ambulancejob`, `qbx_mechanicjob` `config/client.lua` | `useTarget = true` | E yazıları yerine Sol Alt, NPC'lerle çakışmasın |
 | `qbx_core/config/shared.lua` | `serverName = 'Endcore RP'` | Sunucu adı |
